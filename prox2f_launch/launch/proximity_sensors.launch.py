@@ -38,14 +38,24 @@ def generate_launch_description():
     )
 
     composable_nodes = []
-    # Convert to point cloud
     for input_namespace, output_namespace in zip(input_namespaces, output_namespaces):
+        # EMA filter
+        composable_nodes.append(ComposableNode(
+            package='prox_preprocess',
+            plugin='prox::EMA',
+            namespace=output_namespace,
+            remappings=[
+                    ('input/image', [input_namespace, '/image']),
+                    ('image', 'ema/image'),
+            ],
+        ))
+        # Convert to point cloud
         composable_nodes.append(ComposableNode(
             package='depth_image_proc',
             plugin='depth_image_proc::PointCloudXyzNode',
             namespace=output_namespace,
             remappings=[
-                    ('image_rect', [input_namespace, '/image']),
+                    ('image_rect', 'ema/image'),
                     ('camera_info', [input_namespace, '/camera_info']),
             ],
         ))
