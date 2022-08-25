@@ -38,16 +38,28 @@ def generate_launch_description():
     )
 
     composable_nodes = []
-    # Convert to point cloud
     for input_namespace, output_namespace in zip(input_namespaces, output_namespaces):
+        # EMA filter
+        composable_nodes.append(ComposableNode(
+            package='prox_preprocess',
+            plugin='prox::EMA',
+            namespace=output_namespace,
+            remappings=[
+                    ('input/image', [input_namespace, '/image']),
+                    ('image', 'ema/image'),
+            ],
+            extra_arguments=[{'use_intra_process_comms': True}],
+        ))
+        # Convert to point cloud
         composable_nodes.append(ComposableNode(
             package='depth_image_proc',
             plugin='depth_image_proc::PointCloudXyzNode',
             namespace=output_namespace,
             remappings=[
-                    ('image_rect', [input_namespace, '/image']),
+                    ('image_rect', 'ema/image'),
                     ('camera_info', [input_namespace, '/camera_info']),
             ],
+            extra_arguments=[{'use_intra_process_comms': True}],
         ))
     # Concatenate point clouds
     composable_nodes.append(ComposableNode(
@@ -57,6 +69,7 @@ def generate_launch_description():
             ('input1/points', output_namespaces[0] + '/points'),
             ('input2/points', output_namespaces[1] + '/points'),
         ],
+        extra_arguments=[{'use_intra_process_comms': True}],
     ))
 
     component_container = ComposableNodeContainer(
