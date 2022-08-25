@@ -48,6 +48,7 @@ def generate_launch_description():
                     ('input/image', [input_namespace, '/image']),
                     ('image', 'ema/image'),
             ],
+            extra_arguments=[{'use_intra_process_comms': True}],
         ))
         # Convert to point cloud
         composable_nodes.append(ComposableNode(
@@ -58,6 +59,7 @@ def generate_launch_description():
                     ('image_rect', 'ema/image'),
                     ('camera_info', [input_namespace, '/camera_info']),
             ],
+            extra_arguments=[{'use_intra_process_comms': True}],
         ))
     # Concatenate point clouds
     composable_nodes.append(ComposableNode(
@@ -67,6 +69,7 @@ def generate_launch_description():
             ('input1/points', output_namespaces[0] + '/points'),
             ('input2/points', output_namespaces[1] + '/points'),
         ],
+        extra_arguments=[{'use_intra_process_comms': True}],
     ))
 
     component_container = ComposableNodeContainer(
