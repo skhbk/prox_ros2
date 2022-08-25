@@ -59,8 +59,8 @@ def generate_launch_description():
     ]
 
     composable_nodes = []
+    # Convert to point cloud
     for input_namespace, output_namespace in zip(input_namespaces, output_namespaces):
-        # Convert to point cloud
         composable_nodes.append(ComposableNode(
             package='depth_image_proc',
             plugin='depth_image_proc::PointCloudXyzNode',
@@ -70,6 +70,16 @@ def generate_launch_description():
                     ('camera_info', [input_namespace, '/camera_info']),
             ],
         ))
+    # Concatenate point clouds
+    composable_nodes.append(ComposableNode(
+        package='prox_preprocess',
+        plugin='prox::ConcatenateClouds',
+        remappings=[
+            ('input1/points', output_namespaces[0] + '/points'),
+            ('input2/points', output_namespaces[1] + '/points'),
+        ],
+    ))
+
     component_container = ComposableNodeContainer(
         name='proximity_container',
         namespace='',

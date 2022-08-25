@@ -56,9 +56,9 @@ Visualization Manager:
           Value: true
         left_outer_knuckle:
           Value: true
-        proximity0:
+        proximity/left:
           Value: true
-        proximity1:
+        proximity/right:
           Value: true
         right_inner_finger:
           Value: true
@@ -78,23 +78,24 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        robotiq_2f_base_link:
-          left_inner_knuckle:
-            {}
-          left_outer_knuckle:
-            left_outer_finger:
-              left_inner_finger:
-                left_inner_finger_pad:
-                  proximity0:
-                    {}
-          right_inner_knuckle:
-            {}
-          right_outer_knuckle:
-            right_outer_finger:
-              right_inner_finger:
-                right_inner_finger_pad:
-                  proximity1:
-                    {}
+        world:
+          robotiq_2f_base_link:
+            left_inner_knuckle:
+              {}
+            left_outer_knuckle:
+              left_outer_finger:
+                left_inner_finger:
+                  left_inner_finger_pad:
+                    proximity/left:
+                      {}
+            right_inner_knuckle:
+              {}
+            right_outer_knuckle:
+              right_outer_finger:
+                right_inner_finger:
+                  right_inner_finger_pad:
+                    proximity/right:
+                      {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -178,8 +179,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 1.2456676959991455
-        Min Value: -0.5474578738212585
+        Max Value: 0.140321284532547
+        Min Value: -0.054254382848739624
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -204,40 +205,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /proximity/left/points
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 1.0682185888290405
-        Min Value: -0.07064893841743469
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz_default_plugins/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: AxisColor
-      Decay Time: 0
-      Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 4096
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Best Effort
-        Value: /proximity/right/points
+        Value: /proximity/points
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
