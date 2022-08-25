@@ -12,8 +12,6 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
-find_package(PCL REQUIRED)
-
 ament_auto_add_library(
   ${PROJECT_NAME} SHARED src/concatenate_clouds_node.cpp src/ema_node.cpp
   src/pass_through_node.cpp
