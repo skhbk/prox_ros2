@@ -17,28 +17,54 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.actions import GroupAction, IncludeLaunchDescription
 from launch.substitutions import PathJoinSubstitution, ThisLaunchFileDir
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.actions import Node
+from launch_ros.actions import Node, PushRosNamespace
 
 
 def generate_launch_description():
+    # Gripper
+    gripper_launch_file = PathJoinSubstitution([
+        FindPackageShare('robotiq_description'),
+        'launch',
+        'bringup.launch.py'
+    ])
     gripper_launch = GroupAction([
+        PushRosNamespace('robotiq'),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                [ThisLaunchFileDir(), '/robotiq_2f_85.launch.py']
-            )
+            PythonLaunchDescriptionSource(gripper_launch_file)
         )
     ])
 
-    proximity_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [ThisLaunchFileDir(), '/proximity_sensors.launch.py']
+    # Proximity sensors
+    proximity_launch = GroupAction([
+        PushRosNamespace('proximity'),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                [ThisLaunchFileDir(), '/proximity_sensors.launch.py']
+            ),
+            launch_arguments={
+                'left_sensor_namespace': '/vl53l5cx/x2a',
+                'right_sensor_namespace': '/vl53l5cx/x2b',
+            }.items()
         ),
-        launch_arguments={
-            'left_sensor_namespace': '/vl53l5cx/x2a',
-            'right_sensor_namespace': '/vl53l5cx/x2b'
-        }.items()
-    )
+    ])
 
+    # Transforms for proximity sensors
+    static_transform_publisher_nodes = [
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            arguments=['-0.015', '0', '0.045', '-1.57079', '-1.57079', '1.57079',
+                       'robotiq_85_left_finger_tip_link', 'proximity/left']
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            arguments=['0.015', '0', '0.045', '1.57079', '-1.57079', '1.57079',
+                       'robotiq_85_right_finger_tip_link', 'proximity/right']
+        ),
+    ]
+
+    # Rviz
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare('prox2f_launch'), 'rviz', 'view_robot.rviz']
     )
@@ -52,9 +78,10 @@ def generate_launch_description():
     )
 
     actions = [
-        gripper_launch,
         proximity_launch,
+        gripper_launch,
         rviz_node,
     ]
+    actions.extend(static_transform_publisher_nodes)
 
     return LaunchDescription(actions)
