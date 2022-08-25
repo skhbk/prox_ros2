@@ -43,6 +43,7 @@ def generate_launch_description():
         executable='robot_state_publisher',
         namespace='robotiq',
         parameters=[robot_description],
+        arguments=['--ros-args', '--log-level', 'warn'],
     )
 
     nodes = [
