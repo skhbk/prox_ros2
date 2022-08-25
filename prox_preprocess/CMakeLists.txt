@@ -16,11 +16,13 @@ find_package(PCL REQUIRED)
 
 ament_auto_add_library(
   ${PROJECT_NAME} SHARED src/concatenate_clouds_node.cpp src/ema_node.cpp
+  src/pass_through_node.cpp
 )
 target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES})
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME} PLUGIN "prox::ConcatenateClouds" "prox::EMA"
+  "prox::PassThrough"
 )
 
 if(BUILD_TESTING)
