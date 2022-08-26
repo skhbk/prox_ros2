@@ -68,7 +68,22 @@ def generate_launch_description():
         remappings=[
             ('input1/points', output_namespaces[0] + '/points'),
             ('input2/points', output_namespaces[1] + '/points'),
+            ('points', 'concat/points'),
         ],
+        extra_arguments=[{'use_intra_process_comms': True}],
+    ))
+    # Pass through filter
+    composable_nodes.append(ComposableNode(
+        package='prox_preprocess',
+        plugin='prox::PassThrough',
+        remappings=[
+            ('input/points', 'concat/points'),
+        ],
+        parameters=[{
+            'field_name': 'x',
+            'limit_min': -.085/2,
+            'limit_max': .085/2,
+        }],
         extra_arguments=[{'use_intra_process_comms': True}],
     ))
 
