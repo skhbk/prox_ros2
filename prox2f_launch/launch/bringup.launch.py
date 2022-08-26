@@ -14,7 +14,7 @@
 
 from launch import LaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.actions import GroupAction, IncludeLaunchDescription
+from launch.actions import GroupAction, IncludeLaunchDescription, TimerAction
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node, PushRosNamespace
@@ -80,11 +80,11 @@ def generate_launch_description():
         emulate_tty=True,
     )
 
-    actions = [
-        proximity_launch,
-        gripper_launch,
-        rviz_node,
-    ]
+    actions = []
     actions.extend(static_transform_publisher_nodes)
+    actions.append(gripper_launch)
+    # Delay starting the nodes to wait for transforms
+    actions.append(TimerAction(period=1., actions=[proximity_launch]))
+    actions.append(rviz_node)
 
     return LaunchDescription(actions)
