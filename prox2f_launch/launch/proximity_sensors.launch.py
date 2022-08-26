@@ -15,7 +15,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import ComposableNodeContainer
+from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
 
@@ -95,11 +95,17 @@ def generate_launch_description():
         composable_node_descriptions=composable_nodes,
         emulate_tty=True,
         arguments=['--ros-args', '--log-level', 'warn'],
+    )
 
+    # Automatically start/stop ranging
+    vl53l5cx_client_node = Node(
+        package='vl53l5cx_client',
+        executable='auto_control',
     )
 
     actions = []
     actions.extend(declared_arguments)
     actions.append(component_container)
+    actions.append(vl53l5cx_client_node)
 
     return LaunchDescription(actions)
