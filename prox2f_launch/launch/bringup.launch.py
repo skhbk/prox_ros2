@@ -14,8 +14,8 @@
 
 from launch import LaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.actions import GroupAction, IncludeLaunchDescription
-from launch.substitutions import PathJoinSubstitution, ThisLaunchFileDir
+from launch.actions import GroupAction, IncludeLaunchDescription, TimerAction
+from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node, PushRosNamespace
 
@@ -35,12 +35,15 @@ def generate_launch_description():
     ])
 
     # Proximity sensors
+    proximity_launch_file = PathJoinSubstitution([
+        FindPackageShare('prox2f_launch'),
+        'launch',
+        'proximity_sensors.launch.py'
+    ])
     proximity_launch = GroupAction([
         PushRosNamespace('proximity'),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                [ThisLaunchFileDir(), '/proximity_sensors.launch.py']
-            ),
+            PythonLaunchDescriptionSource(proximity_launch_file),
             launch_arguments={
                 'left_sensor_namespace': '/vl53l5cx/x2a',
                 'right_sensor_namespace': '/vl53l5cx/x2b',
@@ -77,11 +80,11 @@ def generate_launch_description():
         emulate_tty=True,
     )
 
-    actions = [
-        proximity_launch,
-        gripper_launch,
-        rviz_node,
-    ]
+    actions = []
     actions.extend(static_transform_publisher_nodes)
+    actions.append(gripper_launch)
+    # Delay starting the nodes to wait for transforms
+    actions.append(TimerAction(period=1., actions=[proximity_launch]))
+    actions.append(rviz_node)
 
     return LaunchDescription(actions)
