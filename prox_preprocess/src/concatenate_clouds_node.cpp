@@ -78,9 +78,8 @@ public:
       // Get transform
       geometry_msgs::msg::TransformStamped transform;
       try {
-        transform = tf_buffer_.lookupTransform(
-          target_frame_id, input_msg.header.frame_id, input_msg.header.stamp,
-          rclcpp::Duration::from_seconds(.1));
+        transform =
+          tf_buffer_.lookupTransform(target_frame_id, input_msg.header.frame_id, rclcpp::Time(0));
       } catch (tf2::LookupException & e) {
         RCLCPP_ERROR(this->get_logger(), e.what());
       } catch (tf2::ExtrapolationException & e) {
