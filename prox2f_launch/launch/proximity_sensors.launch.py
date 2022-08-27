@@ -78,12 +78,22 @@ def generate_launch_description():
         plugin='prox::PassThrough',
         remappings=[
             ('input/points', 'concat/points'),
+            ('points', 'passthrough/points'),
         ],
         parameters=[{
             'field_name': 'x',
             'limit_min': -.085/2,
             'limit_max': .085/2,
         }],
+        extra_arguments=[{'use_intra_process_comms': True}],
+    ))
+    # Remove outliers
+    composable_nodes.append(ComposableNode(
+        package='prox_preprocess',
+        plugin='prox::OutlierRemoval',
+        remappings=[
+            ('input/points', 'passthrough/points'),
+        ],
         extra_arguments=[{'use_intra_process_comms': True}],
     ))
 
