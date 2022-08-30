@@ -19,6 +19,8 @@ ament_auto_add_library(
   src/ema_node.cpp
   src/pass_through_node.cpp
   src/outlier_removal_node.cpp
+  src/filters.cpp
+  src/cloud_processor_node.cpp
 )
 target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES})
 
@@ -29,6 +31,7 @@ rclcpp_components_register_nodes(
   "prox::EMA"
   "prox::PassThrough"
   "prox::OutlierRemoval"
+  "prox::CloudProcessor"
 )
 
 if(BUILD_TESTING)
