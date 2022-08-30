@@ -61,41 +61,22 @@ def generate_launch_description():
             ],
             extra_arguments=[{'use_intra_process_comms': True}],
         ))
-    # Concatenate point clouds
-    composable_nodes.append(ComposableNode(
-        package='prox_preprocess',
-        plugin='prox::ConcatenateClouds',
-        remappings=[
-            ('input1/points', output_namespaces[0] + '/points'),
-            ('input2/points', output_namespaces[1] + '/points'),
-            ('points', 'concat/points'),
-        ],
-        extra_arguments=[{'use_intra_process_comms': True}],
-    ))
-    # Pass through filter
-    composable_nodes.append(ComposableNode(
-        package='prox_preprocess',
-        plugin='prox::PassThrough',
-        remappings=[
-            ('input/points', 'concat/points'),
-            ('points', 'passthrough/points'),
-        ],
-        parameters=[{
-            'field_name': 'x',
-            'limit_min': -.085/2,
-            'limit_max': .085/2,
-        }],
-        extra_arguments=[{'use_intra_process_comms': True}],
-    ))
-    # Remove outliers
-    composable_nodes.append(ComposableNode(
-        package='prox_preprocess',
-        plugin='prox::OutlierRemoval',
-        remappings=[
-            ('input/points', 'passthrough/points'),
-        ],
-        extra_arguments=[{'use_intra_process_comms': True}],
-    ))
+        # Preprocess point cloud
+        composable_nodes.append(ComposableNode(
+            package='prox_preprocess',
+            plugin='prox::CloudProcessor',
+            namespace=output_namespace,
+            remappings=[
+                ('input/points', 'points'),
+                ('points', 'preprocess/points'),
+            ],
+            parameters=[{
+                'pass_through/field_name': 'z',
+                'pass_through/limit_min': .01,
+                'pass_through/limit_max': .08,
+            }],
+            extra_arguments=[{'use_intra_process_comms': True}],
+        ))
 
     component_container = ComposableNodeContainer(
         name='proximity_container',
