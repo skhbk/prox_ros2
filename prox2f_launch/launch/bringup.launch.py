@@ -31,6 +31,14 @@ def generate_launch_description():
         PushRosNamespace('robotiq'),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(gripper_launch_file)
+        ),
+        # Grasp simulation
+        PushRosNamespace('sim'),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(gripper_launch_file),
+            launch_arguments={
+                'prefix': 'sim_',
+            }.items(),
         )
     ])
 
