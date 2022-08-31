@@ -31,7 +31,34 @@ def generate_launch_description():
         PushRosNamespace('robotiq'),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(gripper_launch_file)
-        )
+        ),
+        Node(
+            package='joint_state_publisher_gui',
+            executable='joint_state_publisher_gui',
+        ),
+        # Grasp simulation
+        PushRosNamespace('sim'),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(gripper_launch_file),
+            launch_arguments={
+                'prefix': 'sim_',
+            }.items(),
+        ),
+        Node(
+            package='prox2f_contact_analysis',
+            executable='sim_state_publisher',
+            remappings=[
+                ('input/points', '/proximity/concat/points'),
+                ('joint_states', 'reference/joint_states'),
+            ],
+        ),
+        Node(
+            package='joint_state_publisher_gui',
+            executable='joint_state_publisher_gui',
+            parameters=[{
+                'source_list': ['reference/joint_states']
+            }]
+        ),
     ])
 
     # Proximity sensors
@@ -47,6 +74,7 @@ def generate_launch_description():
             launch_arguments={
                 'left_sensor_namespace': '/vl53l5cx/x2a',
                 'right_sensor_namespace': '/vl53l5cx/x2b',
+                'concat_target_frame': 'robotiq_85_base_link',
             }.items()
         ),
     ])
