@@ -45,9 +45,19 @@ def generate_launch_description():
             }.items(),
         ),
         Node(
+            package='prox2f_contact_analysis',
+            executable='sim_state_publisher',
+            remappings=[
+                ('input/points', '/proximity/concat/points'),
+                ('joint_states', 'reference/joint_states'),
+            ],
+        ),
         Node(
             package='joint_state_publisher_gui',
             executable='joint_state_publisher_gui',
+            parameters=[{
+                'source_list': ['reference/joint_states']
+            }]
         ),
     ])
 
@@ -64,6 +74,7 @@ def generate_launch_description():
             launch_arguments={
                 'left_sensor_namespace': '/vl53l5cx/x2a',
                 'right_sensor_namespace': '/vl53l5cx/x2b',
+                'concat_target_frame': 'robotiq_85_base_link',
             }.items()
         ),
     ])
