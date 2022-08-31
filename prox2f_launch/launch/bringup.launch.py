@@ -32,6 +32,10 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(gripper_launch_file)
         ),
+        Node(
+            package='joint_state_publisher_gui',
+            executable='joint_state_publisher_gui',
+        ),
         # Grasp simulation
         PushRosNamespace('sim'),
         IncludeLaunchDescription(
@@ -39,7 +43,12 @@ def generate_launch_description():
             launch_arguments={
                 'prefix': 'sim_',
             }.items(),
-        )
+        ),
+        Node(
+        Node(
+            package='joint_state_publisher_gui',
+            executable='joint_state_publisher_gui',
+        ),
     ])
 
     # Proximity sensors
