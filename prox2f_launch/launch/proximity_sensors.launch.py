@@ -25,6 +25,7 @@ def generate_launch_description():
     declared_arguments.extend([
         DeclareLaunchArgument('left_sensor_namespace', default_value='left'),
         DeclareLaunchArgument('right_sensor_namespace', default_value='right'),
+        DeclareLaunchArgument('concat_target_frame', default_value='world'),
     ])
 
     # Initialize Arguments
@@ -58,6 +59,7 @@ def generate_launch_description():
             remappings=[
                     ('image_rect', 'ema/image'),
                     ('camera_info', [input_namespace, '/camera_info']),
+                    ('points', 'raw/points'),
             ],
             extra_arguments=[{'use_intra_process_comms': True}],
         ))
@@ -67,8 +69,7 @@ def generate_launch_description():
             plugin='prox::CloudProcessor',
             namespace=output_namespace,
             remappings=[
-                ('input/points', 'points'),
-                ('points', 'preprocess/points'),
+                ('input/points', 'raw/points'),
             ],
             parameters=[{
                 'pass_through/field_name': 'z',
@@ -77,6 +78,21 @@ def generate_launch_description():
             }],
             extra_arguments=[{'use_intra_process_comms': True}],
         ))
+
+    # Concatenate point clouds
+    composable_nodes.append(ComposableNode(
+        package='prox_preprocess',
+        plugin='prox::ConcatenateClouds',
+        remappings=[
+            ('input1/points', output_namespaces[0] + '/points'),
+            ('input2/points', output_namespaces[1] + '/points'),
+            ('points', 'concat/points'),
+        ],
+        parameters=[{
+            'target_frame_id': LaunchConfiguration('concat_target_frame'),
+        }],
+        extra_arguments=[{'use_intra_process_comms': True}],
+    ))
 
     component_container = ComposableNodeContainer(
         name='proximity_container',
