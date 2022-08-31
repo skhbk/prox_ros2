@@ -58,6 +58,7 @@ def generate_launch_description():
             remappings=[
                     ('image_rect', 'ema/image'),
                     ('camera_info', [input_namespace, '/camera_info']),
+                    ('points', 'raw/points'),
             ],
             extra_arguments=[{'use_intra_process_comms': True}],
         ))
@@ -67,8 +68,7 @@ def generate_launch_description():
             plugin='prox::CloudProcessor',
             namespace=output_namespace,
             remappings=[
-                ('input/points', 'points'),
-                ('points', 'preprocess/points'),
+                ('input/points', 'raw/points'),
             ],
             parameters=[{
                 'pass_through/field_name': 'z',

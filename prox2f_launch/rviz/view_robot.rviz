@@ -228,7 +228,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /proximity/left/preprocess/points
+        Value: /proximity/left/points
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -261,7 +261,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /proximity/right/preprocess/points
+        Value: /proximity/right/points
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
