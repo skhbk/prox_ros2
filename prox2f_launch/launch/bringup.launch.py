@@ -79,8 +79,8 @@ def generate_launch_description():
         ),
     ])
 
-    # Transforms for proximity sensors
     static_transform_publisher_nodes = [
+        # Transforms for proximity sensors
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
@@ -92,6 +92,20 @@ def generate_launch_description():
             executable='static_transform_publisher',
             arguments=['0.015', '0', '0.045', '1.57079', '-1.57079', '1.57079',
                        'robotiq_85_right_finger_tip_link', 'proximity/right']
+        ),
+
+        # Transforms for fingertip surfaces
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            arguments=['-0.025', '0', '0.03', '-1.57079', '0', '1.57079',
+                       'sim_robotiq_85_left_finger_tip_link', 'fingertip/left']
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            arguments=['0.025', '0', '0.03', '1.57079', '0', '1.57079',
+                       'sim_robotiq_85_right_finger_tip_link', 'fingertip/right']
         ),
     ]
 
