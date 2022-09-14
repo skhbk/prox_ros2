@@ -17,7 +17,8 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.actions import GroupAction, IncludeLaunchDescription, TimerAction
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.actions import Node, PushRosNamespace
+from launch_ros.actions import Node, PushRosNamespace, ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
 
 
 def generate_launch_description():
@@ -109,6 +110,34 @@ def generate_launch_description():
         ),
     ]
 
+    contact_analysis_nodes = []
+    for finger in ('left', 'right'):
+        input_topic = '/proximity/' + finger + '/points'
+        namespace = 'contact_analysis/' + finger
+        surface_frame_id = 'fingertip/' + finger
+        contact_analysis_nodes.append(ComposableNode(
+            package='prox2f_contact_analysis',
+            plugin='prox::contact::ContactMapping',
+            namespace=namespace,
+            remappings=[
+                ('input/points', input_topic),
+            ],
+            parameters=[{
+                'surface_frame_id': surface_frame_id
+            }],
+            extra_arguments=[{'use_intra_process_comms': True}],
+        ))
+
+    contact_analysis_container = ComposableNodeContainer(
+        name='contact_analysis_container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container',
+        composable_node_descriptions=contact_analysis_nodes,
+        emulate_tty=True,
+        arguments=['--ros-args', '--log-level', 'warn'],
+    )
+
     # Rviz
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare('prox2f_launch'), 'rviz', 'view_robot.rviz']
@@ -125,6 +154,7 @@ def generate_launch_description():
     actions = []
     actions.extend(static_transform_publisher_nodes)
     actions.append(gripper_launch)
+    actions.append(contact_analysis_container)
     # Delay starting the nodes to wait for transforms
     actions.append(TimerAction(period=1., actions=[proximity_launch]))
     actions.append(rviz_node)
