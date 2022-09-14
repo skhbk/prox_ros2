@@ -23,6 +23,10 @@
 #include <CGAL/Surface_mesh.h>
 #include <pcl_conversions/pcl_conversions.h>
 
+#include <memory>
+#include <string>
+#include <vector>
+
 namespace prox
 {
 namespace contact

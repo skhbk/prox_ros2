@@ -14,6 +14,8 @@
 
 #include "prox2f_contact_analysis/robotiq_2f_85_fingertip.hpp"
 
+#include <vector>
+
 namespace prox
 {
 namespace contact
