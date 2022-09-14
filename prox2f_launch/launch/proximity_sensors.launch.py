@@ -40,14 +40,14 @@ def generate_launch_description():
 
     composable_nodes = []
     for input_namespace, output_namespace in zip(input_namespaces, output_namespaces):
-        # EMA filter
+        # Image smoothing
         composable_nodes.append(ComposableNode(
             package='prox_preprocess',
-            plugin='prox::EMA',
+            plugin='prox::ImageSmoothing',
             namespace=output_namespace,
             remappings=[
                     ('input/image', [input_namespace, '/image']),
-                    ('image', 'ema/image'),
+                    ('image', 'smooth/image'),
             ],
             extra_arguments=[{'use_intra_process_comms': True}],
         ))
@@ -57,7 +57,7 @@ def generate_launch_description():
             plugin='depth_image_proc::PointCloudXyzNode',
             namespace=output_namespace,
             remappings=[
-                    ('image_rect', 'ema/image'),
+                    ('image_rect', 'smooth/image'),
                     ('camera_info', [input_namespace, '/camera_info']),
                     ('points', 'raw/points'),
             ],

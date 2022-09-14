@@ -12,11 +12,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include <cv_bridge/cv_bridge.h>
-
 #include <opencv2/core.hpp>
 #include <rclcpp/rclcpp.hpp>
+
 #include <sensor_msgs/msg/image.hpp>
+
+#include <cv_bridge/cv_bridge.h>
+
 #include <vector>
 
 namespace prox
@@ -24,7 +26,7 @@ namespace prox
 using sensor_msgs::msg::Image;
 using std::placeholders::_1;
 
-class EMA : public rclcpp::Node
+class ImageSmoothing : public rclcpp::Node
 {
   cv::Mat1f img_;
 
@@ -32,12 +34,12 @@ class EMA : public rclcpp::Node
   rclcpp::Publisher<Image>::SharedPtr publisher_;
 
 public:
-  explicit EMA(const rclcpp::NodeOptions & options) : Node("ema", options)
+  explicit ImageSmoothing(const rclcpp::NodeOptions & options) : Node("ema", options)
   {
     this->declare_parameter<double>("weight", .3);
 
     subscription_ = create_subscription<Image>(
-      "input/image", rclcpp::SensorDataQoS(), std::bind(&EMA::topic_callback, this, _1));
+      "input/image", rclcpp::SensorDataQoS(), std::bind(&ImageSmoothing::topic_callback, this, _1));
     publisher_ = create_publisher<Image>("image", rclcpp::SensorDataQoS());
   }
 
@@ -54,6 +56,8 @@ private:
       img_ = cv::Mat1f(input_img.size(), NAN);
     }
     assert(img_.size == input_img.size);
+
+    cv::medianBlur(input_img, input_img, 3);
 
     double weight;
     this->get_parameter("weight", weight);
@@ -78,4 +82,4 @@ private:
 }  // namespace prox
 
 #include "rclcpp_components/register_node_macro.hpp"
-RCLCPP_COMPONENTS_REGISTER_NODE(prox::EMA)
+RCLCPP_COMPONENTS_REGISTER_NODE(prox::ImageSmoothing)
