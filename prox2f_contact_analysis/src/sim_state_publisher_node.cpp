@@ -26,6 +26,8 @@
 
 namespace prox
 {
+namespace contact
+{
 using sensor_msgs::msg::JointState;
 using sensor_msgs::msg::PointCloud2;
 using std::placeholders::_1;
@@ -109,12 +111,13 @@ public:
     return position;
   }
 };
+}  // namespace contact
 }  // namespace prox
 
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  const auto node = std::make_shared<prox::SimStatePublisher>();
+  const auto node = std::make_shared<prox::contact::SimStatePublisher>();
   rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;
