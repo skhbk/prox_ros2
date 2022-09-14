@@ -12,9 +12,12 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#pragma once
+#ifndef PROX2F_CONTACT_ANALYSIS__ROBOTIQ_2F_85_FINGERTIP_HPP_
+#define PROX2F_CONTACT_ANALYSIS__ROBOTIQ_2F_85_FINGERTIP_HPP_
 
 #include "prox2f_contact_analysis/contact_surface.hpp"
+
+#include <vector>
 
 namespace prox
 {
@@ -31,3 +34,5 @@ public:
 };
 }  // namespace contact
 }  // namespace prox
+
+#endif  // PROX2F_CONTACT_ANALYSIS__ROBOTIQ_2F_85_FINGERTIP_HPP_

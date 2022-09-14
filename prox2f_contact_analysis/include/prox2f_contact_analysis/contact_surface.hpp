@@ -12,7 +12,8 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#pragma once
+#ifndef PROX2F_CONTACT_ANALYSIS__CONTACT_SURFACE_HPP_
+#define PROX2F_CONTACT_ANALYSIS__CONTACT_SURFACE_HPP_
 
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 
@@ -31,3 +32,5 @@ public:
 };
 }  // namespace contact
 }  // namespace prox
+
+#endif  // PROX2F_CONTACT_ANALYSIS__CONTACT_SURFACE_HPP_

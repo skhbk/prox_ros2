@@ -12,7 +12,8 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#pragma once
+#ifndef PROX2F_CONTACT_ANALYSIS__CONTACT_MAPPING_NODE_HPP_
+#define PROX2F_CONTACT_ANALYSIS__CONTACT_MAPPING_NODE_HPP_
 
 #include "prox2f_contact_analysis/contact_surface.hpp"
 
@@ -25,6 +26,7 @@
 #include <pcl/point_types.h>
 
 #include <memory>
+#include <vector>
 
 namespace prox
 {
@@ -54,3 +56,5 @@ private:
 
 #include "rclcpp_components/register_node_macro.hpp"
 RCLCPP_COMPONENTS_REGISTER_NODE(prox::contact::ContactMapping)
+
+#endif  // PROX2F_CONTACT_ANALYSIS__CONTACT_MAPPING_NODE_HPP_
