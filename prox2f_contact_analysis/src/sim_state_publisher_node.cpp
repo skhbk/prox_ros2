@@ -12,6 +12,8 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+#include "prox2f_contact_analysis/robotiq_2f_85_fingertip.hpp"
+
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -78,10 +80,14 @@ public:
 
   static float get_contact_width(const pcl::PointCloud<pcl::PointXYZ> cloud)
   {
+    // Gripper width
+    constexpr auto y_lim = Robotiq2F85Fingertip::width / 2;
+
     float x_max = 0;
     for (const auto & e : cloud) {
       const auto x = std::abs(e.x);
-      if (x > x_max) {
+      const auto y = std::abs(e.y);
+      if (x > x_max && y < y_lim) {
         x_max = x;
       }
     }
