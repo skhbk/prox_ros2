@@ -85,13 +85,13 @@ def generate_launch_description():
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            arguments=['-0.015', '0', '0.045', '-1.57079', '-1.57079', '1.57079',
+            arguments=['-0.0149', '0', '0.04201', '-1.57079', '-1.57079', '1.57079',
                        'robotiq_85_left_finger_tip_link', 'proximity/left']
         ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            arguments=['0.015', '0', '0.045', '1.57079', '-1.57079', '1.57079',
+            arguments=['0.0149', '0', '0.04201', '1.57079', '-1.57079', '1.57079',
                        'robotiq_85_right_finger_tip_link', 'proximity/right']
         ),
 
@@ -99,13 +99,13 @@ def generate_launch_description():
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            arguments=['-0.025', '0', '0.03', '-1.57079', '0', '1.57079',
+            arguments=['-0.0249', '0', '0.03201', '-1.57079', '0', '1.57079',
                        'sim_robotiq_85_left_finger_tip_link', 'fingertip/left']
         ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            arguments=['0.025', '0', '0.03', '1.57079', '0', '1.57079',
+            arguments=['0.0249', '0', '0.03201', '1.57079', '0', '1.57079',
                        'sim_robotiq_85_right_finger_tip_link', 'fingertip/right']
         ),
     ]
