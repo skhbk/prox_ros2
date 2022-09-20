@@ -12,8 +12,8 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef PROX2F_CONTACT_ANALYSIS__CONTACT_MAPPING_NODE_HPP_
-#define PROX2F_CONTACT_ANALYSIS__CONTACT_MAPPING_NODE_HPP_
+#ifndef PROX2F_CONTACT_ANALYSIS__RESAMPLE_CLOUD_NODE_HPP_
+#define PROX2F_CONTACT_ANALYSIS__RESAMPLE_CLOUD_NODE_HPP_
 
 #include "prox2f_contact_analysis/contact_surface.hpp"
 
@@ -34,7 +34,7 @@ namespace contact
 {
 using PCLCloud = pcl::PointCloud<pcl::PointXYZ>;
 
-class ContactMapping : public rclcpp::Node
+class ResampleCloud : public rclcpp::Node
 {
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
@@ -44,7 +44,7 @@ class ContactMapping : public rclcpp::Node
   std::unique_ptr<ContactSurface> contact_surface_;
 
 public:
-  explicit ContactMapping(const rclcpp::NodeOptions & options);
+  explicit ResampleCloud(const rclcpp::NodeOptions & options);
 
 private:
   void topic_callback(const sensor_msgs::msg::PointCloud2::SharedPtr input_msg);
@@ -55,6 +55,6 @@ private:
 }  // namespace prox
 
 #include "rclcpp_components/register_node_macro.hpp"
-RCLCPP_COMPONENTS_REGISTER_NODE(prox::contact::ContactMapping)
+RCLCPP_COMPONENTS_REGISTER_NODE(prox::contact::ResampleCloud)
 
-#endif  // PROX2F_CONTACT_ANALYSIS__CONTACT_MAPPING_NODE_HPP_
+#endif  // PROX2F_CONTACT_ANALYSIS__RESAMPLE_CLOUD_NODE_HPP_

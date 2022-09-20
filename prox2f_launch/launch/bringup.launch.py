@@ -117,7 +117,7 @@ def generate_launch_description():
         surface_frame_id = 'fingertip/' + finger
         contact_analysis_nodes.append(ComposableNode(
             package='prox2f_contact_analysis',
-            plugin='prox::contact::ContactMapping',
+            plugin='prox::contact::ResampleCloud',
             namespace=namespace,
             remappings=[
                 ('input/points', input_topic),
