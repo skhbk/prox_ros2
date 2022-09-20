@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "prox2f_contact_analysis/contact_mapping_node.hpp"
+#include "prox2f_contact_analysis/resample_cloud_node.hpp"
 #include "prox2f_contact_analysis/robotiq_2f_85_fingertip.hpp"
 
 #include <CGAL/AABB_face_graph_triangle_primitive.h>
@@ -34,8 +34,8 @@ namespace contact
 using sensor_msgs::msg::PointCloud2;
 using std::placeholders::_1;
 
-ContactMapping::ContactMapping(const rclcpp::NodeOptions & options)
-: Node("contact_mapping", options),
+ResampleCloud::ResampleCloud(const rclcpp::NodeOptions & options)
+: Node("resample_cloud", options),
   tf_buffer_(this->get_clock()),
   tf_listener_(tf_buffer_),
   contact_surface_(std::make_unique<Robotiq2F85Fingertip>())
@@ -43,11 +43,11 @@ ContactMapping::ContactMapping(const rclcpp::NodeOptions & options)
   this->declare_parameter<std::string>("surface_frame_id", "world");
 
   subscription_ = this->create_subscription<PointCloud2>(
-    "input/points", rclcpp::SensorDataQoS(), std::bind(&ContactMapping::topic_callback, this, _1));
+    "input/points", rclcpp::SensorDataQoS(), std::bind(&ResampleCloud::topic_callback, this, _1));
   publisher_ = this->create_publisher<PointCloud2>("points", rclcpp::SensorDataQoS());
 }
 
-void ContactMapping::topic_callback(const PointCloud2::SharedPtr input_msg)
+void ResampleCloud::topic_callback(const PointCloud2::SharedPtr input_msg)
 {
   if (publisher_->get_subscription_count() == 0) {
     return;
@@ -79,7 +79,7 @@ void ContactMapping::topic_callback(const PointCloud2::SharedPtr input_msg)
   publisher_->publish(output_msg);
 }
 
-std::vector<Kernel::Point_3> ContactMapping::pcl_cloud_to_cgal(const PCLCloud & cloud) const
+std::vector<Kernel::Point_3> ResampleCloud::pcl_cloud_to_cgal(const PCLCloud & cloud) const
 {
   assert(!cloud.empty());
   assert(cloud.is_dense);
@@ -94,7 +94,7 @@ std::vector<Kernel::Point_3> ContactMapping::pcl_cloud_to_cgal(const PCLCloud & 
   return points;
 }
 
-PCLCloud ContactMapping::resample_cloud(const PCLCloud & cloud, uint16_t dpi) const
+PCLCloud ResampleCloud::resample_cloud(const PCLCloud & cloud, uint16_t dpi) const
 {
   std::string surface_frame_id;
   this->get_parameter("surface_frame_id", surface_frame_id);
