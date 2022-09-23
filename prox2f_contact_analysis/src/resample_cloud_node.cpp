@@ -72,6 +72,10 @@ void ResampleCloud::topic_callback(const PointCloud2::SharedPtr input_msg)
   PCLCloud cloud;
   pcl::fromROSMsg(msg, cloud);
 
+  if (cloud.size() < 5) {
+    return;
+  }
+
   const auto resampled_cloud = this->resample_cloud(cloud, 20);
 
   PointCloud2 output_msg;
