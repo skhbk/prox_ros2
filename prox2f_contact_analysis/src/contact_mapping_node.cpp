@@ -13,14 +13,7 @@
 //  limitations under the License.
 
 #include "prox2f_contact_analysis/contact_mapping_node.hpp"
-#include "prox2f_contact_analysis/robotiq_2f_85_fingertip.hpp"
 
-#include <CGAL/AABB_face_graph_triangle_primitive.h>
-#include <CGAL/AABB_traits.h>
-#include <CGAL/AABB_tree.h>
-#include <CGAL/Advancing_front_surface_reconstruction.h>
-#include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
-#include <CGAL/Surface_mesh.h>
 #include <pcl_conversions/pcl_conversions.h>
 
 #include <memory>
@@ -33,14 +26,13 @@ namespace contact
 {
 using sensor_msgs::msg::PointCloud2;
 using std::placeholders::_1;
+using namespace std::chrono_literals;
 
 ContactMapping::ContactMapping(const rclcpp::NodeOptions & options)
-: Node("contact_mapping", options),
-  tf_buffer_(this->get_clock()),
-  tf_listener_(tf_buffer_),
-  contact_surface_(std::make_unique<Robotiq2F85Fingertip>())
+: Node("contact_mapping", options)
 {
-  this->declare_parameter<std::string>("surface_frame_id", "world");
+  this->declare_parameter<float>("penetration", .003);
+  this->declare_parameter<float>("margin", .002);
 
   subscription_ = this->create_subscription<PointCloud2>(
     "input/points", rclcpp::SensorDataQoS(), std::bind(&ContactMapping::topic_callback, this, _1));
@@ -52,91 +44,38 @@ void ContactMapping::topic_callback(const PointCloud2::SharedPtr input_msg)
   if (publisher_->get_subscription_count() == 0) {
     return;
   }
-
-  std::string surface_frame_id;
-  this->get_parameter("surface_frame_id", surface_frame_id);
-
-  // Get transform
-  geometry_msgs::msg::TransformStamped transform;
-  try {
-    transform =
-      tf_buffer_.lookupTransform(surface_frame_id, input_msg->header.frame_id, rclcpp::Time(0));
-  } catch (tf2::LookupException & e) {
-    RCLCPP_ERROR(this->get_logger(), e.what());
-  } catch (tf2::ExtrapolationException & e) {
-    RCLCPP_ERROR(this->get_logger(), e.what());
+  if (input_msg->data.empty()) {
+    return;
   }
 
-  PointCloud2 msg;
-  pcl_ros::transformPointCloud(surface_frame_id, transform, *input_msg, msg);
-  PCLCloud cloud;
-  pcl::fromROSMsg(msg, cloud);
+  pcl::PointCloud<pcl::PointXYZ> cloud, contact_cloud;
+  pcl::fromROSMsg(*input_msg, cloud);
+  contact_cloud.header = cloud.header;
 
-  const auto resampled_cloud = this->resample_cloud(cloud, 20);
+  // Find min z
+  float z_min = cloud.at(0).z;
+  for (const auto & e : cloud) {
+    if (e.z < z_min) {
+      z_min = e.z;
+    }
+  }
+
+  float penetration, margin;
+  this->get_parameter("penetration", penetration);
+  this->get_parameter("margin", margin);
+
+  const float offset = z_min < margin ? z_min : margin;
+
+  for (const auto & e : cloud) {
+    const float z = e.z - offset;
+    if (z <= penetration) {
+      contact_cloud.emplace_back(e.x, e.y, z - penetration);
+    }
+  }
 
   PointCloud2 output_msg;
-  pcl::toROSMsg(resampled_cloud, output_msg);
+  pcl::toROSMsg(contact_cloud, output_msg);
   publisher_->publish(output_msg);
-}
-
-std::vector<Kernel::Point_3> ContactMapping::pcl_cloud_to_cgal(const PCLCloud & cloud) const
-{
-  assert(!cloud.empty());
-  assert(cloud.is_dense);
-
-  std::vector<Kernel::Point_3> points;
-  points.reserve(cloud.size());
-
-  for (const auto & e : cloud.points) {
-    points.emplace_back(e.x, e.y, e.z);
-  }
-
-  return points;
-}
-
-PCLCloud ContactMapping::resample_cloud(const PCLCloud & cloud, uint16_t dpi) const
-{
-  std::string surface_frame_id;
-  this->get_parameter("surface_frame_id", surface_frame_id);
-  assert(surface_frame_id == cloud.header.frame_id);
-
-  const auto points = this->pcl_cloud_to_cgal(cloud);
-
-  // Surface reconstruction
-  using Facet = std::array<std::size_t, 3>;
-  std::vector<Facet> facets;
-  CGAL::advancing_front_surface_reconstruction(
-    points.begin(), points.end(), std::back_inserter(facets));
-
-  // Convert to mesh
-  using Mesh = CGAL::Surface_mesh<Kernel::Point_3>;
-  Mesh mesh;
-  CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(points, facets, mesh);
-  // CGAL::draw(mesh);
-
-  // AABB tree
-  using AABBPrimitive = CGAL::AABB_face_graph_triangle_primitive<Mesh>;
-  using AABBTraits = CGAL::AABB_traits<Kernel, AABBPrimitive>;
-  using AABBTree = CGAL::AABB_tree<AABBTraits>;
-  AABBTree tree(CGAL::faces(mesh).first, CGAL::faces(mesh).second, mesh);
-
-  // Ray intersection
-  PCLCloud resampled_cloud;
-  resampled_cloud.header = cloud.header;
-  const auto rays = contact_surface_->get_rays(dpi);
-  for (const auto & ray : rays) {
-    const auto intersection = tree.first_intersection(ray);
-    if (!intersection) {
-      continue;
-    }
-    const auto point = boost::get<Kernel::Point_3>(&(intersection->first));
-    if (point) {
-      resampled_cloud.emplace_back(
-        CGAL::to_double(point->x()), CGAL::to_double(point->y()), CGAL::to_double(point->z()));
-    }
-  }
-
-  return resampled_cloud;
 }
 
 }  // namespace contact
