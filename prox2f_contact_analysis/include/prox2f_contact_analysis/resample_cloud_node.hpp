@@ -12,34 +12,49 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef PROX2F_CONTACT_ANALYSIS__CONTACT_MAPPING_NODE_HPP_
-#define PROX2F_CONTACT_ANALYSIS__CONTACT_MAPPING_NODE_HPP_
+#ifndef PROX2F_CONTACT_ANALYSIS__RESAMPLE_CLOUD_NODE_HPP_
+#define PROX2F_CONTACT_ANALYSIS__RESAMPLE_CLOUD_NODE_HPP_
 
 #include "prox2f_contact_analysis/contact_surface.hpp"
 
+#include <pcl_ros/transforms.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/point_cloud2.hpp>
+
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+
+#include <memory>
+#include <vector>
 
 namespace prox
 {
 namespace contact
 {
-class ContactMapping : public rclcpp::Node
+using PCLCloud = pcl::PointCloud<pcl::PointXYZ>;
+
+class ResampleCloud : public rclcpp::Node
 {
+  tf2_ros::Buffer tf_buffer_;
+  tf2_ros::TransformListener tf_listener_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subscription_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr publisher_;
 
+  std::unique_ptr<ContactSurface> contact_surface_;
+
 public:
-  explicit ContactMapping(const rclcpp::NodeOptions & options);
+  explicit ResampleCloud(const rclcpp::NodeOptions & options);
 
 private:
   void topic_callback(const sensor_msgs::msg::PointCloud2::SharedPtr input_msg);
+  PCLCloud resample_cloud(const PCLCloud & cloud, uint16_t dpi) const;
+  std::vector<Kernel::Point_3> pcl_cloud_to_cgal(const PCLCloud & cloud) const;
 };
 }  // namespace contact
 }  // namespace prox
 
 #include "rclcpp_components/register_node_macro.hpp"
-RCLCPP_COMPONENTS_REGISTER_NODE(prox::contact::ContactMapping)
+RCLCPP_COMPONENTS_REGISTER_NODE(prox::contact::ResampleCloud)
 
-#endif  // PROX2F_CONTACT_ANALYSIS__CONTACT_MAPPING_NODE_HPP_
+#endif  // PROX2F_CONTACT_ANALYSIS__RESAMPLE_CLOUD_NODE_HPP_

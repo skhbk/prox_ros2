@@ -65,17 +65,22 @@ private:
     img_.forEach([&](float & pixel, const int * position) {
       const auto & input_pixel = input_img.at<float>(position[0], position[1]);
 
-      if (!std::isnan(pixel) && !std::isnan(input_pixel)) {
+      if (std::isnan(input_pixel) || input_pixel < .02) {
+        pixel = NAN;
+      } else if (std::isnan(pixel)) {
+        pixel = input_pixel;
+      } else {
         // EMA calculation
         pixel = input_pixel * weight + pixel * (1 - weight);
-      } else {
-        pixel = input_pixel;
       }
     });
 
+    cv::Mat1f output_img;
+    cv::medianBlur(img_, output_img, 3);
+
     auto output_msg = *input_msg;
     output_msg.data =
-      std::vector<uint8_t>(img_.data, img_.data + output_msg.step * output_msg.height);
+      std::vector<uint8_t>(output_img.data, output_img.data + output_msg.step * output_msg.height);
     publisher_->publish(output_msg);
   }
 };
