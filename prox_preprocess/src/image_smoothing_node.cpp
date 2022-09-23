@@ -75,9 +75,12 @@ private:
       }
     });
 
+    cv::Mat1f output_img;
+    cv::medianBlur(img_, output_img, 3);
+
     auto output_msg = *input_msg;
     output_msg.data =
-      std::vector<uint8_t>(img_.data, img_.data + output_msg.step * output_msg.height);
+      std::vector<uint8_t>(output_img.data, output_img.data + output_msg.step * output_msg.height);
     publisher_->publish(output_msg);
   }
 };
