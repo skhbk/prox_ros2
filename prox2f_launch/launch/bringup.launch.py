@@ -115,15 +115,30 @@ def generate_launch_description():
         input_topic = '/proximity/' + finger + '/points'
         namespace = 'contact_analysis/' + finger
         surface_frame_id = 'fingertip/' + finger
+
         contact_analysis_nodes.append(ComposableNode(
             package='prox2f_contact_analysis',
             plugin='prox::contact::ResampleCloud',
             namespace=namespace,
             remappings=[
                 ('input/points', input_topic),
+                ('points', 'resampled/points'),
             ],
             parameters=[{
                 'surface_frame_id': surface_frame_id
+            }],
+            extra_arguments=[{'use_intra_process_comms': True}],
+        ))
+
+        contact_analysis_nodes.append(ComposableNode(
+            package='prox2f_contact_analysis',
+            plugin='prox::contact::ContactMapping',
+            namespace=namespace,
+            remappings=[
+                ('input/points', 'resampled/points'),
+            ],
+            parameters=[{
+                'penetration': .002
             }],
             extra_arguments=[{'use_intra_process_comms': True}],
         ))
