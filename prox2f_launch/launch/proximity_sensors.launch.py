@@ -49,6 +49,9 @@ def generate_launch_description():
                     ('input/image', [input_namespace, '/image']),
                     ('image', 'smooth/image'),
             ],
+            parameters=[{
+                'weight': .2,
+            }],
             extra_arguments=[{'use_intra_process_comms': True}],
         ))
         # Convert to point cloud
@@ -75,6 +78,8 @@ def generate_launch_description():
                 'pass_through/field_name': 'z',
                 'pass_through/limit_min': .01,
                 'pass_through/limit_max': .08,
+                'outlier/radius': .007,
+                'outlier/min_neighbors': 3,
             }],
             extra_arguments=[{'use_intra_process_comms': True}],
         ))
