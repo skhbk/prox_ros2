@@ -65,11 +65,13 @@ private:
     img_.forEach([&](float & pixel, const int * position) {
       const auto & input_pixel = input_img.at<float>(position[0], position[1]);
 
-      if (!std::isnan(pixel) && !std::isnan(input_pixel)) {
+      if (std::isnan(input_pixel) || input_pixel < .02) {
+        pixel = NAN;
+      } else if (std::isnan(pixel)) {
+        pixel = input_pixel;
+      } else {
         // EMA calculation
         pixel = input_pixel * weight + pixel * (1 - weight);
-      } else {
-        pixel = input_pixel;
       }
     });
 
