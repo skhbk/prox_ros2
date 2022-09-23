@@ -23,16 +23,19 @@ ament_auto_add_executable(sim_state_publisher src/sim_state_publisher_node.cpp)
 target_link_libraries(sim_state_publisher ${PCL_LIBRARIES})
 
 ament_auto_add_library(
-  resample_cloud
+  ${PROJECT_NAME}
   SHARED
   src/resample_cloud_node.cpp
+  src/contact_mapping_node.cpp
   src/robotiq_2f_85_fingertip.cpp
 )
-
-target_link_libraries(resample_cloud ${PCL_LIBRARIES} CGAL::CGAL)
+target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES} CGAL::CGAL)
 
 rclcpp_components_register_nodes(
-  resample_cloud PLUGIN "prox::contact::ResampleCloud"
+  ${PROJECT_NAME}
+  PLUGIN
+  "prox::contact::ResampleCloud"
+  "prox::contact::ContactMapping"
 )
 
 if(BUILD_TESTING)
