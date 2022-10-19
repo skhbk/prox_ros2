@@ -85,28 +85,54 @@ def generate_launch_description():
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            arguments=['-0.0149', '0', '0.04201', '-1.57079', '-1.57079', '1.57079',
-                       'robotiq_85_left_finger_tip_link', 'proximity/left']
+            arguments=[
+                '--x', '-0.0149',
+                '--z', '0.04201',
+                '--roll', '-1.57079',
+                '--pitch', '-1.57079',
+                '--yaw', '1.57079',
+                '--frame-id', 'robotiq_85_left_finger_tip_link',
+                '--child-frame-id', 'proximity/left',
+            ]
         ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            arguments=['0.0149', '0', '0.04201', '1.57079', '-1.57079', '1.57079',
-                       'robotiq_85_right_finger_tip_link', 'proximity/right']
+            arguments=[
+                '--x', '0.0149',
+                '--z', '0.04201',
+                '--roll', '1.57079',
+                '--pitch', '-1.57079',
+                '--yaw', '1.57079',
+                '--frame-id', 'robotiq_85_right_finger_tip_link',
+                '--child-frame-id', 'proximity/right',
+            ]
         ),
 
         # Transforms for fingertip surfaces
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            arguments=['-0.0249', '0', '0.03201', '-1.57079', '0', '1.57079',
-                       'sim_robotiq_85_left_finger_tip_link', 'fingertip/left']
+            arguments=[
+                '--x', '-0.0249',
+                '--z', '0.03201',
+                '--roll', '-1.57079',
+                '--yaw', '1.57079',
+                '--frame-id', 'sim_robotiq_85_left_finger_tip_link',
+                '--child-frame-id', 'fingertip/left',
+            ]
         ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            arguments=['0.0249', '0', '0.03201', '1.57079', '0', '1.57079',
-                       'sim_robotiq_85_right_finger_tip_link', 'fingertip/right']
+            arguments=[
+                '--x', '0.0249',
+                '--z', '0.03201',
+                '--roll', '1.57079',
+                '--yaw', '1.57079',
+                '--frame-id', 'sim_robotiq_85_right_finger_tip_link',
+                '--child-frame-id', 'fingertip/right',
+            ]
         ),
     ]
 
