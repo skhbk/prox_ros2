@@ -36,10 +36,10 @@ AutoControl::AutoControl() : Node("vl53l5cx_auto_control")
   const std::string service_name(start_ranging_cli_->get_service_name());
   if (start_ranging_cli_->wait_for_service(1s)) {
     start_ranging_cli_->async_send_request(std::make_shared<Empty::Request>());
-    RCLCPP_INFO(this->get_logger(), "Called " + service_name);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Called " << service_name);
   } else {
-    RCLCPP_ERROR(
-      this->get_logger(), service_name + " is not ready. Please call the service manually.");
+    RCLCPP_ERROR_STREAM(
+      this->get_logger(), service_name << " is not ready. Please call the service manually.");
   }
 }
 
