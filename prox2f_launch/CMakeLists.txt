@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.8)
 project(prox2f_launch)
 
 find_package(ament_cmake_auto REQUIRED)
