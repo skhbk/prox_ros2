@@ -9,10 +9,13 @@
 
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
-  <exec_depend>robotiq_description</exec_depend>
+  <exec_depend>prox2f_description</exec_depend>
+  <exec_depend>ur_robot_driver</exec_depend>
   <exec_depend>prox_preprocess</exec_depend>
   <exec_depend>vl53l5cx_client</exec_depend>
   <exec_depend>prox2f_contact_analysis</exec_depend>
+
+  <exec_depend>gazebo_ros</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
