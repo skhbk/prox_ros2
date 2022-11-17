@@ -30,10 +30,43 @@
         <origin xyz="0 0 0" rpy="0 0 ${pi}" />
     </joint>
 
+    <!-- Frames for proximity sensors -->
+    <xacro:macro name="proximity_frame" params="name parent">
+        <link name="${name}" />
+        <joint name="${name}_joint" type="fixed">
+            <parent link="${parent}" />
+            <child link="${name}" />
+            <origin xyz="-3.5013e-3 0 29e-3" rpy="0 -${pi/2} 0" />
+        </joint>
+        <!-- Create dummy link for gazebo_ros_camera because it publishes image in wrong orientation -->
+        <xacro:if value="$(arg sim_gazebo)">
+            <link name="${name}_gazebo" />
+            <joint name="${name}_gazebo_joint" type="fixed">
+                <parent link="${name}" />
+                <child link="${name}_gazebo" />
+                <origin xyz="0 0 0" rpy="0 -${pi/2} ${pi/2}" />
+            </joint>
+        </xacro:if>
+    </xacro:macro>
+    <xacro:proximity_frame name="left_proximity" parent="robotiq_2f_left_fingertip_link" />
+    <xacro:proximity_frame name="right_proximity" parent="robotiq_2f_right_fingertip_link" />
+
     <!-- Gazebo -->
-    <gazebo>
-        <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
-            <parameters>$(arg simulation_controllers)</parameters>
-        </plugin>
-    </gazebo>
+    <xacro:if value="$(arg sim_gazebo)">
+        <!-- ros2_control -->
+        <gazebo>
+            <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+                <parameters>$(arg simulation_controllers)</parameters>
+            </plugin>
+        </gazebo>
+
+        <!-- Proximity sensors -->
+        <xacro:include filename="$(find prox2f_description)/urdf/vl53l5cx_macro.xacro" />
+        <gazebo reference="left_proximity_gazebo">
+            <xacro:vl53l5cx name="left_vl53l5cx" frame="left_proximity" />
+        </gazebo>
+        <gazebo reference="right_proximity_gazebo">
+            <xacro:vl53l5cx name="right_vl53l5cx" frame="right_proximity" />
+        </gazebo>
+    </xacro:if>
 </robot>
