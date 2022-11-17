@@ -80,8 +80,7 @@ def generate_launch_description():
         arguments=[
             "-d",
             PathJoinSubstitution(
-                # TODO: Use dedicated config file
-                [FindPackageShare("robotiq_2f_85_description"), "rviz", "view.rviz"]
+                [FindPackageShare("prox2f_launch"), "rviz", "sim_gazebo.rviz"]
             ),
         ],
         emulate_tty=True,
