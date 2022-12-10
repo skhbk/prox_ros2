@@ -5,6 +5,8 @@
     <xacro:arg name="sim_gazebo" default="false" />
     <xacro:arg name="simulation_controllers" default="" />
 
+    <xacro:property name="sim_gazebo" value="$(arg sim_gazebo)" />
+
     <!-- UR -->
     <link name="world" />
     <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro" />
@@ -25,7 +27,7 @@
 
     <!-- Gripper -->
     <xacro:include filename="$(find robotiq_2f_85_description)/urdf/robotiq_2f_85_macro.xacro" />
-    <xacro:robotiq_2f_85 name="robotiq_2f" prefix="robotiq_2f_" ur_coupling="true" />
+    <xacro:robotiq_2f_85 name="robotiq_2f" prefix="robotiq_2f_" ur_coupling="true" mimic="${not sim_gazebo}" />
     <joint name="tool_joint" type="fixed">
         <parent link="tool0" />
         <child link="robotiq_2f_coupling_link" />
