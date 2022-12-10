@@ -23,171 +23,194 @@ from launch_ros.descriptions import ComposableNode
 
 def generate_launch_description():
     # Gripper
-    gripper_launch_file = PathJoinSubstitution([
-        FindPackageShare('robotiq_description'),
-        'launch',
-        'bringup.launch.py'
-    ])
-    gripper_launch = GroupAction([
-        PushRosNamespace('robotiq'),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(gripper_launch_file)
-        ),
-        Node(
-            package='joint_state_publisher_gui',
-            executable='joint_state_publisher_gui',
-        ),
-        # Grasp simulation
-        PushRosNamespace('sim'),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(gripper_launch_file),
-            launch_arguments={
-                'prefix': 'sim_',
-            }.items(),
-        ),
-        Node(
-            package='prox2f_contact_analysis',
-            executable='sim_state_publisher',
-            remappings=[
-                ('input/points', '/proximity/concat/points'),
-                ('joint_states', 'reference/joint_states'),
-            ],
-        ),
-        Node(
-            package='joint_state_publisher_gui',
-            executable='joint_state_publisher_gui',
-            parameters=[{
-                'source_list': ['reference/joint_states']
-            }]
-        ),
-    ])
+    gripper_launch_file = PathJoinSubstitution(
+        [FindPackageShare("robotiq_description"), "launch", "bringup.launch.py"]
+    )
+    gripper_launch = GroupAction(
+        [
+            PushRosNamespace("robotiq"),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(gripper_launch_file)
+            ),
+            Node(
+                package="joint_state_publisher_gui",
+                executable="joint_state_publisher_gui",
+            ),
+            # Grasp simulation
+            PushRosNamespace("sim"),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(gripper_launch_file),
+                launch_arguments={
+                    "prefix": "sim_",
+                }.items(),
+            ),
+            Node(
+                package="prox2f_contact_analysis",
+                executable="sim_state_publisher",
+                remappings=[
+                    ("input/points", "/proximity/concat/points"),
+                    ("joint_states", "reference/joint_states"),
+                ],
+            ),
+            Node(
+                package="joint_state_publisher_gui",
+                executable="joint_state_publisher_gui",
+                parameters=[{"source_list": ["reference/joint_states"]}],
+            ),
+        ]
+    )
 
     # Proximity sensors
-    proximity_launch_file = PathJoinSubstitution([
-        FindPackageShare('prox2f_launch'),
-        'launch',
-        'proximity_sensors.launch.py'
-    ])
-    proximity_launch = GroupAction([
-        PushRosNamespace('proximity'),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(proximity_launch_file),
-            launch_arguments={
-                'left_sensor_namespace': '/vl53l5cx/x2a',
-                'right_sensor_namespace': '/vl53l5cx/x2b',
-                'concat_target_frame': 'robotiq_85_base_link',
-            }.items()
-        ),
-    ])
+    proximity_launch_file = PathJoinSubstitution(
+        [FindPackageShare("prox2f_launch"), "launch", "proximity_sensors.launch.py"]
+    )
+    proximity_launch = GroupAction(
+        [
+            PushRosNamespace("proximity"),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(proximity_launch_file),
+                launch_arguments={
+                    "left_sensor_namespace": "/vl53l5cx/x2a",
+                    "right_sensor_namespace": "/vl53l5cx/x2b",
+                    "concat_target_frame": "robotiq_85_base_link",
+                }.items(),
+            ),
+        ]
+    )
 
     static_transform_publisher_nodes = [
         # Transforms for proximity sensors
         Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
+            package="tf2_ros",
+            executable="static_transform_publisher",
             arguments=[
-                '--x', '-0.0149',
-                '--z', '0.04201',
-                '--roll', '-1.57079',
-                '--pitch', '-1.57079',
-                '--yaw', '1.57079',
-                '--frame-id', 'robotiq_85_left_finger_tip_link',
-                '--child-frame-id', 'proximity/left',
-            ]
+                "--x",
+                "-0.0149",
+                "--z",
+                "0.04201",
+                "--roll",
+                "-1.57079",
+                "--pitch",
+                "-1.57079",
+                "--yaw",
+                "1.57079",
+                "--frame-id",
+                "robotiq_85_left_finger_tip_link",
+                "--child-frame-id",
+                "proximity/left",
+            ],
         ),
         Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
+            package="tf2_ros",
+            executable="static_transform_publisher",
             arguments=[
-                '--x', '0.0149',
-                '--z', '0.04201',
-                '--roll', '1.57079',
-                '--pitch', '-1.57079',
-                '--yaw', '1.57079',
-                '--frame-id', 'robotiq_85_right_finger_tip_link',
-                '--child-frame-id', 'proximity/right',
-            ]
+                "--x",
+                "0.0149",
+                "--z",
+                "0.04201",
+                "--roll",
+                "1.57079",
+                "--pitch",
+                "-1.57079",
+                "--yaw",
+                "1.57079",
+                "--frame-id",
+                "robotiq_85_right_finger_tip_link",
+                "--child-frame-id",
+                "proximity/right",
+            ],
         ),
-
         # Transforms for fingertip surfaces
         Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
+            package="tf2_ros",
+            executable="static_transform_publisher",
             arguments=[
-                '--x', '-0.0249',
-                '--z', '0.03201',
-                '--roll', '-1.57079',
-                '--yaw', '1.57079',
-                '--frame-id', 'sim_robotiq_85_left_finger_tip_link',
-                '--child-frame-id', 'fingertip/left',
-            ]
+                "--x",
+                "-0.0249",
+                "--z",
+                "0.03201",
+                "--roll",
+                "-1.57079",
+                "--yaw",
+                "1.57079",
+                "--frame-id",
+                "sim_robotiq_85_left_finger_tip_link",
+                "--child-frame-id",
+                "fingertip/left",
+            ],
         ),
         Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
+            package="tf2_ros",
+            executable="static_transform_publisher",
             arguments=[
-                '--x', '0.0249',
-                '--z', '0.03201',
-                '--roll', '1.57079',
-                '--yaw', '1.57079',
-                '--frame-id', 'sim_robotiq_85_right_finger_tip_link',
-                '--child-frame-id', 'fingertip/right',
-            ]
+                "--x",
+                "0.0249",
+                "--z",
+                "0.03201",
+                "--roll",
+                "1.57079",
+                "--yaw",
+                "1.57079",
+                "--frame-id",
+                "sim_robotiq_85_right_finger_tip_link",
+                "--child-frame-id",
+                "fingertip/right",
+            ],
         ),
     ]
 
     contact_analysis_nodes = []
-    for finger in ('left', 'right'):
-        input_topic = '/proximity/' + finger + '/points'
-        namespace = 'contact_analysis/' + finger
-        surface_frame_id = 'fingertip/' + finger
+    for finger in ("left", "right"):
+        input_topic = "/proximity/" + finger + "/points"
+        namespace = "contact_analysis/" + finger
+        surface_frame_id = "fingertip/" + finger
 
-        contact_analysis_nodes.append(ComposableNode(
-            package='prox2f_contact_analysis',
-            plugin='prox::contact::ResampleCloud',
-            namespace=namespace,
-            remappings=[
-                ('input/points', input_topic),
-                ('points', 'resampled/points'),
-            ],
-            parameters=[{
-                'surface_frame_id': surface_frame_id
-            }],
-            extra_arguments=[{'use_intra_process_comms': True}],
-        ))
+        contact_analysis_nodes.append(
+            ComposableNode(
+                package="prox2f_contact_analysis",
+                plugin="prox::contact::ResampleCloud",
+                namespace=namespace,
+                remappings=[
+                    ("input/points", input_topic),
+                    ("points", "resampled/points"),
+                ],
+                parameters=[{"surface_frame_id": surface_frame_id}],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            )
+        )
 
-        contact_analysis_nodes.append(ComposableNode(
-            package='prox2f_contact_analysis',
-            plugin='prox::contact::ContactMapping',
-            namespace=namespace,
-            remappings=[
-                ('input/points', 'resampled/points'),
-            ],
-            parameters=[{
-                'penetration': .002
-            }],
-            extra_arguments=[{'use_intra_process_comms': True}],
-        ))
+        contact_analysis_nodes.append(
+            ComposableNode(
+                package="prox2f_contact_analysis",
+                plugin="prox::contact::ContactMapping",
+                namespace=namespace,
+                remappings=[
+                    ("input/points", "resampled/points"),
+                ],
+                parameters=[{"penetration": 0.002}],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            )
+        )
 
     contact_analysis_container = ComposableNodeContainer(
-        name='contact_analysis_container',
-        namespace='',
-        package='rclcpp_components',
-        executable='component_container',
+        name="contact_analysis_container",
+        namespace="",
+        package="rclcpp_components",
+        executable="component_container",
         composable_node_descriptions=contact_analysis_nodes,
         emulate_tty=True,
-        arguments=['--ros-args', '--log-level', 'warn'],
+        arguments=["--ros-args", "--log-level", "warn"],
     )
 
     # Rviz
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare('prox2f_launch'), 'rviz', 'view_robot.rviz']
+        [FindPackageShare("prox2f_launch"), "rviz", "view_robot.rviz"]
     )
     rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        namespace='',
-        arguments=['-d', rviz_config_file],
+        package="rviz2",
+        executable="rviz2",
+        namespace="",
+        arguments=["-d", rviz_config_file],
         # remappings=[('/tf', 'tf'), ('/tf_static', 'tf_static')],
         emulate_tty=True,
     )
@@ -197,7 +220,7 @@ def generate_launch_description():
     actions.append(gripper_launch)
     actions.append(contact_analysis_container)
     # Delay starting the nodes to wait for transforms
-    actions.append(TimerAction(period=1., actions=[proximity_launch]))
+    actions.append(TimerAction(period=1.0, actions=[proximity_launch]))
     actions.append(rviz_node)
 
     return LaunchDescription(actions)
