@@ -3,10 +3,9 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /RobotModel1/Description Topic1
+      Expanded: ~
       Splitter Ratio: 0.4079365134239197
-    Tree Height: 814
+    Tree Height: 811
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -65,7 +64,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: robotiq/robot_description
+        Value: /robot_description
       Enabled: true
       Links:
         All Links Enabled: true
@@ -73,47 +72,42 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        robotiq_85_base_link:
+        base:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link_inertia:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        robotiq_85_left_finger_link:
+        flange:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        forearm_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        robotiq_85_left_finger_tip_link:
+        ft_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        shoulder_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        robotiq_85_left_inner_knuckle_link:
+        tool0:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        robotiq_85_left_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_85_right_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_85_right_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_85_right_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_85_right_knuckle_link:
+        upper_arm_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -122,6 +116,130 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        wrist_1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wrist_2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wrist_3_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Mass Properties:
+        Inertia: false
+        Mass: false
+      Name: RobotModel
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /grp/robot_description
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        grp_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_coupling_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_left_finger1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_left_finger2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_left_finger3_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_left_finger4_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_left_fingertip_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_right_finger1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_right_finger2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_right_finger3_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_right_finger4_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_right_fingertip_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_fingertip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_proximity:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_fingertip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_proximity:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        tool0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+      Mass Properties:
+        Inertia: false
+        Mass: false
       Name: RobotModel
       TF Prefix: ""
       Update Interval: 0
@@ -137,7 +255,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /robotiq/sim/robot_description
+        Value: /grp/ghost/robot_description
       Enabled: true
       Links:
         All Links Enabled: true
@@ -145,55 +263,89 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        sim_robotiq_85_base_link:
+        grp_ghost_base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        sim_robotiq_85_left_finger_link:
+        grp_ghost_coupling_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        sim_robotiq_85_left_finger_tip_link:
+        grp_ghost_left_finger1_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        sim_robotiq_85_left_inner_knuckle_link:
+        grp_ghost_left_finger2_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        sim_robotiq_85_left_knuckle_link:
+        grp_ghost_left_finger3_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        sim_robotiq_85_right_finger_link:
+        grp_ghost_left_finger4_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        sim_robotiq_85_right_finger_tip_link:
+        grp_ghost_left_fingertip_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        sim_robotiq_85_right_inner_knuckle_link:
+        grp_ghost_right_finger1_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        sim_robotiq_85_right_knuckle_link:
+        grp_ghost_right_finger2_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        world:
+        grp_ghost_right_finger3_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+          Value: true
+        grp_ghost_right_finger4_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_ghost_right_fingertip_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_fingertip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_proximity:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_fingertip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_proximity:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        tool0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+      Mass Properties:
+        Inertia: false
+        Mass: false
       Name: RobotModel
       TF Prefix: ""
       Update Interval: 0
@@ -226,6 +378,7 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
         Value: /proximity/left/points
@@ -259,6 +412,7 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
         Value: /proximity/right/points
@@ -292,6 +446,7 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
         Value: /contact_analysis/left/points
@@ -325,6 +480,7 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
         Value: /contact_analysis/right/points
@@ -334,7 +490,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: world
+    Fixed Frame: tool0
     Frame Rate: 30
   Name: root
   Tools:
@@ -346,6 +502,9 @@ Visualization Manager:
     - Class: rviz_default_plugins/Measure
       Line color: 128; 128; 0
     - Class: rviz_default_plugins/SetInitialPose
+      Covariance x: 0.25
+      Covariance y: 0.25
+      Covariance yaw: 0.06853891909122467
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -400,7 +559,7 @@ Window Geometry:
   Height: 1043
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001eb000003b9fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d000003b9000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000003b9fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003d000003b9000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000060f0000003efc0100000002fb0000000800540069006d006501000000000000060f0000000000000000fb0000000800540069006d006501000000000000045000000000000000000000047a000003b900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001eb000003b7fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed0000043800000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003e000003b7000000ca00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000003b7fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003e000003b7000000a600fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000060f0000003efc0100000002fb0000000800540069006d006501000000000000060f0000000000000000fb0000000800540069006d006501000000000000045000000000000000000000047a000003b700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Tool Properties:

@@ -160,7 +160,7 @@ def generate_launch_description():
 
     # Rviz
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare("prox2f_launch"), "rviz", "view_robot.rviz"]
+        [FindPackageShare("prox2f_launch"), "rviz", "view.rviz"]
     )
     rviz_node = Node(
         package="rviz2",
