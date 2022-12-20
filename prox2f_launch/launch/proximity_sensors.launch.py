@@ -22,8 +22,8 @@ from launch_ros.descriptions import ComposableNode
 
 def generate_launch_description():
     # Declare arguments
-    declared_arguments = []
-    declared_arguments.extend(
+    args = []
+    args.extend(
         [
             DeclareLaunchArgument("left_sensor_namespace", default_value="left"),
             DeclareLaunchArgument("right_sensor_namespace", default_value="right"),
@@ -145,16 +145,14 @@ def generate_launch_description():
         shell=True,
     )
 
-    actions = []
-    actions.extend(declared_arguments)
-    actions.append(component_container)
-    actions.append(start_ranging)
-    actions.append(
+    actions = [
+        component_container,
+        start_ranging,
         RegisterEventHandler(
             event_handler=OnShutdown(
                 on_shutdown=[stop_ranging],
             )
-        )
-    )
+        ),
+    ]
 
-    return LaunchDescription(actions)
+    return LaunchDescription(args + actions)

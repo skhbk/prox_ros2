@@ -88,9 +88,9 @@ def generate_launch_description():
 
     contact_analysis_nodes = []
     for finger in ("left", "right"):
-        input_topic = "/proximity/" + finger + "/points"
-        namespace = "contact_analysis/" + finger
-        surface_frame_id = "fingertip/" + finger
+        input_topic = f"/proximity/{finger}/points"
+        namespace = f"contact_analysis/{finger}"
+        surface_frame_id = f"{finger}_fingertip_surface"
 
         contact_analysis_nodes.append(
             ComposableNode(
@@ -138,22 +138,19 @@ def generate_launch_description():
         executable="rviz2",
         namespace="",
         arguments=["-d", rviz_config_file],
-        # remappings=[('/tf', 'tf'), ('/tf_static', 'tf_static')],
         emulate_tty=True,
     )
 
-    actions = []
-    actions.append(gripper_launch)
-    actions.append(contact_analysis_container)
-    actions.append(TimerAction(period=1.0, actions=[proximity_launch]))
-    actions.append(rviz_node)
-    actions.append(
+    actions = [
+        gripper_launch,
+        contact_analysis_container,
+        TimerAction(period=1.0, actions=[proximity_launch]),
+        rviz_node,
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=rviz_node,
                 on_exit=[EmitEvent(event=Shutdown(reason="Window closed"))],
             )
-        )
-    )
-
+        ),
+    ]
     return LaunchDescription(actions)
