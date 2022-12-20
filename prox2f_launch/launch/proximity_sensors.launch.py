@@ -13,9 +13,10 @@
 #  limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import ComposableNodeContainer, Node
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, RegisterEventHandler
+from launch.substitutions import LaunchConfiguration, FindExecutable
+from launch.event_handlers import OnShutdown
+from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 
 
@@ -125,15 +126,35 @@ def generate_launch_description():
         arguments=["--ros-args", "--log-level", "warn"],
     )
 
-    # Automatically start/stop ranging
-    vl53l5cx_client_node = Node(
-        package="vl53l5cx_client",
-        executable="auto_control",
+    start_ranging = ExecuteProcess(
+        cmd=[
+            FindExecutable(name="ros2"),
+            "service call",
+            "/vl53l5cx/start_ranging",
+            "std_srvs/srv/Empty",
+        ],
+        shell=True,
+    )
+    stop_ranging = ExecuteProcess(
+        cmd=[
+            FindExecutable(name="ros2"),
+            "service call",
+            "/vl53l5cx/stop_ranging",
+            "std_srvs/srv/Empty",
+        ],
+        shell=True,
     )
 
     actions = []
     actions.extend(declared_arguments)
     actions.append(component_container)
-    actions.append(vl53l5cx_client_node)
+    actions.append(start_ranging)
+    actions.append(
+        RegisterEventHandler(
+            event_handler=OnShutdown(
+                on_shutdown=[stop_ranging],
+            )
+        )
+    )
 
     return LaunchDescription(actions)

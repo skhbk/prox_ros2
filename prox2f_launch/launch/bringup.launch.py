@@ -14,7 +14,15 @@
 
 from launch import LaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.actions import GroupAction, IncludeLaunchDescription, TimerAction
+from launch.actions import (
+    GroupAction,
+    IncludeLaunchDescription,
+    TimerAction,
+    RegisterEventHandler,
+    EmitEvent,
+)
+from launch.events import Shutdown
+from launch.event_handlers import OnProcessExit
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node, PushRosNamespace, ComposableNodeContainer
@@ -137,8 +145,15 @@ def generate_launch_description():
     actions = []
     actions.append(gripper_launch)
     actions.append(contact_analysis_container)
-    # Delay starting the nodes to wait for transforms
     actions.append(TimerAction(period=1.0, actions=[proximity_launch]))
     actions.append(rviz_node)
+    actions.append(
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=rviz_node,
+                on_exit=[EmitEvent(event=Shutdown(reason="Window closed"))],
+            )
+        )
+    )
 
     return LaunchDescription(actions)
