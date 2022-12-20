@@ -78,87 +78,6 @@ def generate_launch_description():
         ]
     )
 
-    static_transform_publisher_nodes = [
-        # Transforms for proximity sensors
-        Node(
-            package="tf2_ros",
-            executable="static_transform_publisher",
-            arguments=[
-                "--x",
-                "-0.0149",
-                "--z",
-                "0.04201",
-                "--roll",
-                "-1.57079",
-                "--pitch",
-                "-1.57079",
-                "--yaw",
-                "1.57079",
-                "--frame-id",
-                "robotiq_85_left_finger_tip_link",
-                "--child-frame-id",
-                "proximity/left",
-            ],
-        ),
-        Node(
-            package="tf2_ros",
-            executable="static_transform_publisher",
-            arguments=[
-                "--x",
-                "0.0149",
-                "--z",
-                "0.04201",
-                "--roll",
-                "1.57079",
-                "--pitch",
-                "-1.57079",
-                "--yaw",
-                "1.57079",
-                "--frame-id",
-                "robotiq_85_right_finger_tip_link",
-                "--child-frame-id",
-                "proximity/right",
-            ],
-        ),
-        # Transforms for fingertip surfaces
-        Node(
-            package="tf2_ros",
-            executable="static_transform_publisher",
-            arguments=[
-                "--x",
-                "-0.0249",
-                "--z",
-                "0.03201",
-                "--roll",
-                "-1.57079",
-                "--yaw",
-                "1.57079",
-                "--frame-id",
-                "sim_robotiq_85_left_finger_tip_link",
-                "--child-frame-id",
-                "fingertip/left",
-            ],
-        ),
-        Node(
-            package="tf2_ros",
-            executable="static_transform_publisher",
-            arguments=[
-                "--x",
-                "0.0249",
-                "--z",
-                "0.03201",
-                "--roll",
-                "1.57079",
-                "--yaw",
-                "1.57079",
-                "--frame-id",
-                "sim_robotiq_85_right_finger_tip_link",
-                "--child-frame-id",
-                "fingertip/right",
-            ],
-        ),
-    ]
-
     contact_analysis_nodes = []
     for finger in ("left", "right"):
         input_topic = "/proximity/" + finger + "/points"
@@ -216,7 +135,6 @@ def generate_launch_description():
     )
 
     actions = []
-    actions.extend(static_transform_publisher_nodes)
     actions.append(gripper_launch)
     actions.append(contact_analysis_container)
     # Delay starting the nodes to wait for transforms
