@@ -23,34 +23,57 @@ from launch.actions import (
 )
 from launch.events import Shutdown
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import PathJoinSubstitution
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node, PushRosNamespace, ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 
 
 def generate_launch_description():
-    # Gripper
-    gripper_launch_file = PathJoinSubstitution(
-        [FindPackageShare("robotiq_description"), "launch", "bringup.launch.py"]
+    gripper_urdf = PathJoinSubstitution(
+        [FindPackageShare("prox2f_description"), "urdf", "gripper.urdf.xacro"]
     )
+    gripper_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            gripper_urdf,
+            " ",
+            "name:=grp",
+        ]
+    )
+    ghost_gripper_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            gripper_urdf,
+            " ",
+            "name:=grp_ghost",
+            " ",
+            "prefix:=grp_ghost_",
+        ]
+    )
+    gripper_description = {"robot_description": gripper_description_content}
+    ghost_gripper_description = {"robot_description": ghost_gripper_description_content}
+
     gripper_launch = GroupAction(
         [
-            PushRosNamespace("robotiq"),
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(gripper_launch_file)
+            PushRosNamespace("grp"),
+            Node(
+                package="robot_state_publisher",
+                executable="robot_state_publisher",
+                parameters=[gripper_description],
             ),
             Node(
                 package="joint_state_publisher_gui",
                 executable="joint_state_publisher_gui",
             ),
             # Grasp simulation
-            PushRosNamespace("sim"),
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(gripper_launch_file),
-                launch_arguments={
-                    "prefix": "sim_",
-                }.items(),
+            PushRosNamespace("ghost"),
+            Node(
+                package="robot_state_publisher",
+                executable="robot_state_publisher",
+                parameters=[ghost_gripper_description],
             ),
             Node(
                 package="prox2f_contact_analysis",
@@ -58,6 +81,12 @@ def generate_launch_description():
                 remappings=[
                     ("input/points", "/proximity/concat/points"),
                     ("joint_states", "reference/joint_states"),
+                ],
+                parameters=[
+                    {
+                        "joint": "grp_ghost_left_finger1_joint",
+                        "base_link": "tool0",
+                    }
                 ],
             ),
             Node(
@@ -80,7 +109,7 @@ def generate_launch_description():
                 launch_arguments={
                     "left_sensor_namespace": "/vl53l5cx/x2a",
                     "right_sensor_namespace": "/vl53l5cx/x2b",
-                    "concat_target_frame": "robotiq_85_base_link",
+                    "concat_target_frame": "tool0",
                 }.items(),
             ),
         ]
