@@ -58,7 +58,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /robot_description
+        Value: /ur/robot_description
       Enabled: true
       Links:
         All Links Enabled: true
@@ -92,74 +92,6 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        left_proximity:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_proximity:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        robotiq_2f_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_2f_coupling_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_2f_left_finger1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_2f_left_finger2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_2f_left_finger3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_2f_left_finger4_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_2f_left_fingertip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_2f_right_finger1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_2f_right_finger2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_2f_right_finger3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_2f_right_finger4_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robotiq_2f_right_fingertip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         shoulder_link:
           Alpha: 1
           Show Axes: false
@@ -193,6 +125,112 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+      Mass Properties:
+        Inertia: false
+        Mass: false
+      Name: RobotModel
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /grp/robot_description
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        grp_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_coupling_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_left_finger1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_left_finger2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_left_finger3_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_left_finger4_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_left_fingertip_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_right_finger1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_right_finger2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_right_finger3_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_right_finger4_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        grp_right_fingertip_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_fingertip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_proximity:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_fingertip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_proximity:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        tool0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Mass Properties:
         Inertia: false
         Mass: false
