@@ -44,6 +44,18 @@
     <xacro:proximity_frame name="left_proximity" parent="$(arg prefix)left_fingertip_link" />
     <xacro:proximity_frame name="right_proximity" parent="$(arg prefix)right_fingertip_link" />
 
+    <!-- Frames for fingertip -->
+    <xacro:macro name="fingertip_frame" params="name parent">
+        <link name="${name}" />
+        <joint name="${name}_joint" type="fixed">
+            <parent link="${parent}" />
+            <child link="${name}" />
+            <origin xyz="-13.86e-3 0 18.5e-3" rpy="0 -${pi/2} 0" />
+        </joint>
+    </xacro:macro>
+    <xacro:fingertip_frame name="left_fingertip" parent="$(arg prefix)left_fingertip_link" />
+    <xacro:fingertip_frame name="right_fingertip" parent="$(arg prefix)right_fingertip_link" />
+
     <!-- Gazebo -->
     <xacro:if value="$(arg sim_gazebo)">
         <!-- ros2_control -->
