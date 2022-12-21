@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="prox2f">
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="$(arg name)">
     <!-- Parameters -->
+    <xacro:arg name="name" default="" />
+    <xacro:arg name="prefix" default="grp_" />
     <xacro:arg name="parent" default="tool0" />
     <xacro:arg name="sim_gazebo" default="false" />
     <xacro:arg name="simulation_controllers" default="" />
@@ -10,10 +12,14 @@
     <!-- Gripper -->
     <link name="$(arg parent)" />
     <xacro:include filename="$(find robotiq_2f_85_description)/urdf/robotiq_2f_85_macro.xacro" />
-    <xacro:robotiq_2f_85 name="robotiq_2f" prefix="robotiq_2f_" ur_coupling="true" mimic="${not sim_gazebo}" />
-    <joint name="tool_joint" type="fixed">
+    <xacro:robotiq_2f_85
+        name="$(arg name)"
+        prefix="$(arg prefix)"
+        ur_coupling="true"
+        mimic="${not sim_gazebo}" />
+    <joint name="$(arg prefix)coupling_joint" type="fixed">
         <parent link="$(arg parent)" />
-        <child link="robotiq_2f_coupling_link" />
+        <child link="$(arg prefix)coupling_link" />
         <origin xyz="0 0 0" rpy="0 0 ${pi}" />
     </joint>
 
@@ -35,8 +41,8 @@
             </joint>
         </xacro:if>
     </xacro:macro>
-    <xacro:proximity_frame name="left_proximity" parent="robotiq_2f_left_fingertip_link" />
-    <xacro:proximity_frame name="right_proximity" parent="robotiq_2f_right_fingertip_link" />
+    <xacro:proximity_frame name="left_proximity" parent="$(arg prefix)left_fingertip_link" />
+    <xacro:proximity_frame name="right_proximity" parent="$(arg prefix)right_fingertip_link" />
 
     <!-- Gazebo -->
     <xacro:if value="$(arg sim_gazebo)">
