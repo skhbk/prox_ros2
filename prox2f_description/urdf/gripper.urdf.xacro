@@ -1,36 +1,25 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="prox2f">
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="$(arg name)">
     <!-- Parameters -->
-    <xacro:arg name="ur_type" default="ur5e" />
+    <xacro:arg name="name" default="" />
+    <xacro:arg name="prefix" default="grp_" />
+    <xacro:arg name="parent" default="tool0" />
     <xacro:arg name="sim_gazebo" default="false" />
     <xacro:arg name="simulation_controllers" default="" />
 
     <xacro:property name="sim_gazebo" value="$(arg sim_gazebo)" />
 
-    <!-- UR -->
-    <link name="world" />
-    <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro" />
-    <xacro:property name="initial_positions_file" default="$(find prox2f_description)/config/ur_initial_positions.yaml" />
-    <xacro:ur_robot
-        name="ur"
-        prefix=""
-        parent="world"
-        joint_limits_parameters_file="$(find ur_description)/config/$(arg ur_type)/joint_limits.yaml"
-        kinematics_parameters_file="$(find ur_description)/config/$(arg ur_type)/default_kinematics.yaml"
-        physical_parameters_file="$(find ur_description)/config/$(arg ur_type)/physical_parameters.yaml"
-        visual_parameters_file="$(find ur_description)/config/$(arg ur_type)/visual_parameters.yaml"
-        initial_positions="${xacro.load_yaml(initial_positions_file)}"
-        sim_gazebo="$(arg sim_gazebo)"
-    >
-        <origin xyz="0 0 0" rpy="0 0 0" />
-    </xacro:ur_robot>
-
     <!-- Gripper -->
+    <link name="$(arg parent)" />
     <xacro:include filename="$(find robotiq_2f_85_description)/urdf/robotiq_2f_85_macro.xacro" />
-    <xacro:robotiq_2f_85 name="robotiq_2f" prefix="robotiq_2f_" ur_coupling="true" mimic="${not sim_gazebo}" />
-    <joint name="tool_joint" type="fixed">
-        <parent link="tool0" />
-        <child link="robotiq_2f_coupling_link" />
+    <xacro:robotiq_2f_85
+        name="$(arg name)"
+        prefix="$(arg prefix)"
+        ur_coupling="true"
+        mimic="${not sim_gazebo}" />
+    <joint name="$(arg prefix)coupling_joint" type="fixed">
+        <parent link="$(arg parent)" />
+        <child link="$(arg prefix)coupling_link" />
         <origin xyz="0 0 0" rpy="0 0 ${pi}" />
     </joint>
 
@@ -52,8 +41,20 @@
             </joint>
         </xacro:if>
     </xacro:macro>
-    <xacro:proximity_frame name="left_proximity" parent="robotiq_2f_left_fingertip_link" />
-    <xacro:proximity_frame name="right_proximity" parent="robotiq_2f_right_fingertip_link" />
+    <xacro:proximity_frame name="left_proximity" parent="$(arg prefix)left_fingertip_link" />
+    <xacro:proximity_frame name="right_proximity" parent="$(arg prefix)right_fingertip_link" />
+
+    <!-- Frames for fingertip -->
+    <xacro:macro name="fingertip_frame" params="name parent">
+        <link name="${name}" />
+        <joint name="${name}_joint" type="fixed">
+            <parent link="${parent}" />
+            <child link="${name}" />
+            <origin xyz="-13.86e-3 0 18.5e-3" rpy="0 -${pi/2} 0" />
+        </joint>
+    </xacro:macro>
+    <xacro:fingertip_frame name="left_fingertip" parent="$(arg prefix)left_fingertip_link" />
+    <xacro:fingertip_frame name="right_fingertip" parent="$(arg prefix)right_fingertip_link" />
 
     <!-- Gazebo -->
     <xacro:if value="$(arg sim_gazebo)">

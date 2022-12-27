@@ -23,29 +23,58 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    robot_description_content = Command(
+    # Descriptions
+    ur_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("prox2f_description"), "urdf", "prox2f.urdf.xacro"]
+                [FindPackageShare("ur_description"), "urdf", "ur.urdf.xacro"]
             ),
+            " ",
+            "name:=ur",
             " ",
             "ur_type:=ur5e",
         ]
     )
+    gripper_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            PathJoinSubstitution(
+                [FindPackageShare("prox2f_description"), "urdf", "gripper.urdf.xacro"]
+            ),
+            " ",
+            "name:=grp",
+        ]
+    )
+    ur_description = {"robot_description": ur_description_content}
+    gripper_description = {"robot_description": gripper_description_content}
 
-    robot_description = {"robot_description": robot_description_content}
-
-    robot_state_publisher_node = Node(
+    # robot_state_publisher nodes
+    ur_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
-        parameters=[robot_description],
+        namespace="ur",
+        parameters=[ur_description],
+    )
+    gripper_state_publisher_node = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        namespace="grp",
+        parameters=[gripper_description],
     )
 
-    joint_state_publisher_node = Node(
+    # joint_state_publisher nodes
+    ur_joint_state_publisher_node = Node(
         package="joint_state_publisher_gui",
         executable="joint_state_publisher_gui",
+        namespace="ur",
+    )
+    gripper_joint_state_publisher_node = Node(
+        package="joint_state_publisher_gui",
+        executable="joint_state_publisher_gui",
+        namespace="grp",
     )
 
     rviz_node = Node(
@@ -61,8 +90,10 @@ def generate_launch_description():
     )
 
     nodes = [
-        robot_state_publisher_node,
-        joint_state_publisher_node,
+        ur_state_publisher_node,
+        gripper_state_publisher_node,
+        ur_joint_state_publisher_node,
+        gripper_joint_state_publisher_node,
         rviz_node,
     ]
 
