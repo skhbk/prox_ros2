@@ -13,111 +13,146 @@
 #  limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import ComposableNodeContainer, Node
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, RegisterEventHandler
+from launch.substitutions import LaunchConfiguration, FindExecutable
+from launch.event_handlers import OnShutdown
+from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 
 
 def generate_launch_description():
     # Declare arguments
-    declared_arguments = []
-    declared_arguments.extend([
-        DeclareLaunchArgument('left_sensor_namespace', default_value='left'),
-        DeclareLaunchArgument('right_sensor_namespace', default_value='right'),
-        DeclareLaunchArgument('concat_target_frame', default_value='world'),
-    ])
+    args = []
+    args.extend(
+        [
+            DeclareLaunchArgument("left_sensor_namespace", default_value="left"),
+            DeclareLaunchArgument("right_sensor_namespace", default_value="right"),
+            DeclareLaunchArgument("concat_target_frame", default_value="world"),
+        ]
+    )
 
     # Initialize Arguments
     input_namespaces = (
-        LaunchConfiguration('left_sensor_namespace'),
-        LaunchConfiguration('right_sensor_namespace'),
+        LaunchConfiguration("left_sensor_namespace"),
+        LaunchConfiguration("right_sensor_namespace"),
     )
     output_namespaces = (
-        'left',
-        'right',
+        "left",
+        "right",
     )
 
     composable_nodes = []
     for input_namespace, output_namespace in zip(input_namespaces, output_namespaces):
         # Image smoothing
-        composable_nodes.append(ComposableNode(
-            package='prox_preprocess',
-            plugin='prox::ImageSmoothing',
-            namespace=output_namespace,
-            remappings=[
-                    ('input/image', [input_namespace, '/image']),
-                    ('image', 'smooth/image'),
-            ],
-            parameters=[{
-                'weight': .2,
-            }],
-            extra_arguments=[{'use_intra_process_comms': True}],
-        ))
+        composable_nodes.append(
+            ComposableNode(
+                package="prox_preprocess",
+                plugin="prox::ImageSmoothing",
+                namespace=output_namespace,
+                remappings=[
+                    ("input/image", [input_namespace, "/image"]),
+                    ("image", "smooth/image"),
+                ],
+                parameters=[
+                    {
+                        "weight": 0.2,
+                    }
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            )
+        )
         # Convert to point cloud
-        composable_nodes.append(ComposableNode(
-            package='depth_image_proc',
-            plugin='depth_image_proc::PointCloudXyzNode',
-            namespace=output_namespace,
-            remappings=[
-                    ('image_rect', 'smooth/image'),
-                    ('camera_info', [input_namespace, '/camera_info']),
-                    ('points', 'raw/points'),
-            ],
-            extra_arguments=[{'use_intra_process_comms': True}],
-        ))
+        composable_nodes.append(
+            ComposableNode(
+                package="depth_image_proc",
+                plugin="depth_image_proc::PointCloudXyzNode",
+                namespace=output_namespace,
+                remappings=[
+                    ("image_rect", "smooth/image"),
+                    ("camera_info", [input_namespace, "/camera_info"]),
+                    ("points", "raw/points"),
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            )
+        )
         # Preprocess point cloud
-        composable_nodes.append(ComposableNode(
-            package='prox_preprocess',
-            plugin='prox::CloudProcessor',
-            namespace=output_namespace,
-            remappings=[
-                ('input/points', 'raw/points'),
-            ],
-            parameters=[{
-                'pass_through/field_name': 'z',
-                'pass_through/limit_min': .01,
-                'pass_through/limit_max': .08,
-                'outlier/radius': .007,
-                'outlier/min_neighbors': 3,
-            }],
-            extra_arguments=[{'use_intra_process_comms': True}],
-        ))
+        composable_nodes.append(
+            ComposableNode(
+                package="prox_preprocess",
+                plugin="prox::CloudProcessor",
+                namespace=output_namespace,
+                remappings=[
+                    ("input/points", "raw/points"),
+                ],
+                parameters=[
+                    {
+                        "pass_through/field_name": "z",
+                        "pass_through/limit_min": 0.01,
+                        "pass_through/limit_max": 0.08,
+                        "outlier/radius": 0.007,
+                        "outlier/min_neighbors": 3,
+                    }
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            )
+        )
 
     # Concatenate point clouds
-    composable_nodes.append(ComposableNode(
-        package='prox_preprocess',
-        plugin='prox::ConcatenateClouds',
-        remappings=[
-            ('input1/points', output_namespaces[0] + '/points'),
-            ('input2/points', output_namespaces[1] + '/points'),
-            ('points', 'concat/points'),
-        ],
-        parameters=[{
-            'target_frame_id': LaunchConfiguration('concat_target_frame'),
-        }],
-        extra_arguments=[{'use_intra_process_comms': True}],
-    ))
+    composable_nodes.append(
+        ComposableNode(
+            package="prox_preprocess",
+            plugin="prox::ConcatenateClouds",
+            remappings=[
+                ("input1/points", output_namespaces[0] + "/points"),
+                ("input2/points", output_namespaces[1] + "/points"),
+                ("points", "concat/points"),
+            ],
+            parameters=[
+                {
+                    "target_frame_id": LaunchConfiguration("concat_target_frame"),
+                }
+            ],
+            extra_arguments=[{"use_intra_process_comms": True}],
+        )
+    )
 
     component_container = ComposableNodeContainer(
-        name='proximity_container',
-        namespace='',
-        package='rclcpp_components',
-        executable='component_container',
+        name="proximity_container",
+        namespace="",
+        package="rclcpp_components",
+        executable="component_container",
         composable_node_descriptions=composable_nodes,
         emulate_tty=True,
-        arguments=['--ros-args', '--log-level', 'warn'],
+        arguments=["--ros-args", "--log-level", "warn"],
     )
 
-    # Automatically start/stop ranging
-    vl53l5cx_client_node = Node(
-        package='vl53l5cx_client',
-        executable='auto_control',
+    start_ranging = ExecuteProcess(
+        cmd=[
+            FindExecutable(name="ros2"),
+            "service call",
+            "/vl53l5cx/start_ranging",
+            "std_srvs/srv/Empty",
+        ],
+        shell=True,
+    )
+    stop_ranging = ExecuteProcess(
+        cmd=[
+            FindExecutable(name="ros2"),
+            "service call",
+            "/vl53l5cx/stop_ranging",
+            "std_srvs/srv/Empty",
+        ],
+        shell=True,
     )
 
-    actions = []
-    actions.extend(declared_arguments)
-    actions.append(component_container)
-    actions.append(vl53l5cx_client_node)
+    actions = [
+        component_container,
+        start_ranging,
+        RegisterEventHandler(
+            event_handler=OnShutdown(
+                on_shutdown=[stop_ranging],
+            )
+        ),
+    ]
 
-    return LaunchDescription(actions)
+    return LaunchDescription(args + actions)

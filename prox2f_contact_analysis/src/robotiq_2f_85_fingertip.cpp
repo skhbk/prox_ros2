@@ -25,11 +25,11 @@ Robotiq2F85Fingertip::Robotiq2F85Fingertip() {}
 std::vector<Kernel::Ray_3> Robotiq2F85Fingertip::get_rays(uint16_t dpi) const
 {
   const float dpm = dpi / .0254;
-  const uint16_t rows = height * dpm;
-  const uint16_t cols = width * dpm;
+  const uint16_t rows = width * dpm;
+  const uint16_t cols = height * dpm;
   const float pitch = 1 / dpm;
 
-  const Kernel::Point_3 top_left(-width / 2, height / 2, 0);
+  const Kernel::Point_3 top_left(-height / 2, width / 2, 0);
   const Kernel::Vector_3 direction(0, 0, 1);
 
   std::vector<Kernel::Ray_3> rays;
