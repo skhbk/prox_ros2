@@ -51,6 +51,8 @@ def generate_launch_description():
             "name:=grp_ghost",
             " ",
             "prefix:=grp_ghost_",
+            " ",
+            "ghost:=true",
         ]
     )
     gripper_description = {"robot_description": gripper_description_content}
@@ -119,7 +121,7 @@ def generate_launch_description():
     for finger in ("left", "right"):
         input_topic = f"/proximity/{finger}/points"
         namespace = f"contact_analysis/{finger}"
-        surface_frame_id = f"{finger}_fingertip_surface"
+        surface_frame_id = f"{finger}_fingertip"
 
         contact_analysis_nodes.append(
             ComposableNode(
