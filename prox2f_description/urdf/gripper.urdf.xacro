@@ -4,6 +4,7 @@
     <xacro:arg name="name" default="" />
     <xacro:arg name="prefix" default="grp_" />
     <xacro:arg name="parent" default="tool0" />
+    <xacro:arg name="ghost" default="false" />
     <xacro:arg name="sim_gazebo" default="false" />
     <xacro:arg name="simulation_controllers" default="" />
 
@@ -41,8 +42,10 @@
             </joint>
         </xacro:if>
     </xacro:macro>
-    <xacro:proximity_frame name="left_proximity" parent="$(arg prefix)left_fingertip_link" />
-    <xacro:proximity_frame name="right_proximity" parent="$(arg prefix)right_fingertip_link" />
+    <xacro:unless value="$(arg ghost)">
+        <xacro:proximity_frame name="left_proximity" parent="$(arg prefix)left_fingertip_link" />
+        <xacro:proximity_frame name="right_proximity" parent="$(arg prefix)right_fingertip_link" />
+    </xacro:unless>
 
     <!-- Frames for fingertip -->
     <xacro:macro name="fingertip_frame" params="name parent">
@@ -53,8 +56,10 @@
             <origin xyz="-13.86e-3 0 18.5e-3" rpy="0 -${pi/2} 0" />
         </joint>
     </xacro:macro>
-    <xacro:fingertip_frame name="left_fingertip" parent="$(arg prefix)left_fingertip_link" />
-    <xacro:fingertip_frame name="right_fingertip" parent="$(arg prefix)right_fingertip_link" />
+    <xacro:if value="$(arg ghost)">
+        <xacro:fingertip_frame name="left_fingertip" parent="$(arg prefix)left_fingertip_link" />
+        <xacro:fingertip_frame name="right_fingertip" parent="$(arg prefix)right_fingertip_link" />
+    </xacro:if>
 
     <!-- Gazebo -->
     <xacro:if value="$(arg sim_gazebo)">
