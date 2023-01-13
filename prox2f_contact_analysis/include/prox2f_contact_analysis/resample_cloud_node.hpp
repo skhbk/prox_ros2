@@ -49,7 +49,6 @@ public:
 private:
   void topic_callback(const sensor_msgs::msg::PointCloud2::SharedPtr input_msg);
   PCLCloud resample_cloud(const PCLCloud & cloud, uint16_t dpi) const;
-  std::vector<Kernel::Point_3> pcl_cloud_to_cgal(const PCLCloud & cloud) const;
 };
 }  // namespace contact
 }  // namespace prox

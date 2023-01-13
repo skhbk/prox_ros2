@@ -34,6 +34,21 @@ namespace contact
 using sensor_msgs::msg::PointCloud2;
 using std::placeholders::_1;
 
+static std::vector<Kernel::Point_3> pcl_cloud_to_cgal(const PCLCloud & cloud)
+{
+  assert(!cloud.empty());
+  assert(cloud.is_dense);
+
+  std::vector<Kernel::Point_3> points;
+  points.reserve(cloud.size());
+
+  for (const auto & e : cloud.points) {
+    points.emplace_back(e.x, e.y, e.z);
+  }
+
+  return points;
+}
+
 ResampleCloud::ResampleCloud(const rclcpp::NodeOptions & options)
 : Node("resample_cloud", options),
   tf_buffer_(this->get_clock()),
@@ -83,28 +98,13 @@ void ResampleCloud::topic_callback(const PointCloud2::SharedPtr input_msg)
   publisher_->publish(output_msg);
 }
 
-std::vector<Kernel::Point_3> ResampleCloud::pcl_cloud_to_cgal(const PCLCloud & cloud) const
-{
-  assert(!cloud.empty());
-  assert(cloud.is_dense);
-
-  std::vector<Kernel::Point_3> points;
-  points.reserve(cloud.size());
-
-  for (const auto & e : cloud.points) {
-    points.emplace_back(e.x, e.y, e.z);
-  }
-
-  return points;
-}
-
 PCLCloud ResampleCloud::resample_cloud(const PCLCloud & cloud, uint16_t dpi) const
 {
   std::string surface_frame_id;
   this->get_parameter("surface_frame_id", surface_frame_id);
   assert(surface_frame_id == cloud.header.frame_id);
 
-  const auto points = this->pcl_cloud_to_cgal(cloud);
+  const auto points = pcl_cloud_to_cgal(cloud);
 
   // Surface reconstruction
   using Facet = std::array<std::size_t, 3>;
