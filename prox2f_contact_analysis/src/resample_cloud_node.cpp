@@ -33,6 +33,7 @@ namespace contact
 {
 using sensor_msgs::msg::PointCloud2;
 using std::placeholders::_1;
+using Mesh = CGAL::Surface_mesh<Kernel::Point_3>;
 
 static std::vector<Kernel::Point_3> pcl_cloud_to_cgal(const PCLCloud & cloud)
 {
@@ -47,6 +48,25 @@ static std::vector<Kernel::Point_3> pcl_cloud_to_cgal(const PCLCloud & cloud)
   }
 
   return points;
+}
+
+static Mesh reconstruct_mesh(const PCLCloud & cloud)
+{
+  const auto points = pcl_cloud_to_cgal(cloud);
+
+  // Surface reconstruction
+  using Facet = std::array<std::size_t, 3>;
+  std::vector<Facet> facets;
+  CGAL::advancing_front_surface_reconstruction(
+    points.begin(), points.end(), std::back_inserter(facets));
+
+  // Convert to mesh
+  using Mesh = CGAL::Surface_mesh<Kernel::Point_3>;
+  Mesh mesh;
+  CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(points, facets, mesh);
+  // CGAL::draw(mesh);
+
+  return mesh;
 }
 
 ResampleCloud::ResampleCloud(const rclcpp::NodeOptions & options)
@@ -104,19 +124,8 @@ PCLCloud ResampleCloud::resample_cloud(const PCLCloud & cloud, uint16_t dpi) con
   this->get_parameter("surface_frame_id", surface_frame_id);
   assert(surface_frame_id == cloud.header.frame_id);
 
-  const auto points = pcl_cloud_to_cgal(cloud);
-
   // Surface reconstruction
-  using Facet = std::array<std::size_t, 3>;
-  std::vector<Facet> facets;
-  CGAL::advancing_front_surface_reconstruction(
-    points.begin(), points.end(), std::back_inserter(facets));
-
-  // Convert to mesh
-  using Mesh = CGAL::Surface_mesh<Kernel::Point_3>;
-  Mesh mesh;
-  CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(points, facets, mesh);
-  // CGAL::draw(mesh);
+  const auto mesh = reconstruct_mesh(cloud);
 
   // AABB tree
   using AABBPrimitive = CGAL::AABB_face_graph_triangle_primitive<Mesh>;
