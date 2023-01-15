@@ -37,9 +37,6 @@ using Mesh = CGAL::Surface_mesh<Kernel::Point_3>;
 
 static std::vector<Kernel::Point_3> pcl_cloud_to_cgal(const PCLCloud & cloud)
 {
-  assert(!cloud.empty());
-  assert(cloud.is_dense);
-
   std::vector<Kernel::Point_3> points;
   points.reserve(cloud.size());
 
@@ -52,6 +49,8 @@ static std::vector<Kernel::Point_3> pcl_cloud_to_cgal(const PCLCloud & cloud)
 
 static Mesh reconstruct_mesh(const PCLCloud & cloud)
 {
+  assert(cloud.isOrganized());
+
   const auto points = pcl_cloud_to_cgal(cloud);
 
   // Surface reconstruction

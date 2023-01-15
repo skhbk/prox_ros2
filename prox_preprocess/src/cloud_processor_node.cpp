@@ -61,6 +61,7 @@ public:
 
     pcl::PointCloud<pcl::PointXYZ> cloud;
     pcl::fromROSMsg(*input_msg, cloud);
+    assert(cloud.isOrganized());
 
     // Remove NaN
     pcl::Indices index;
