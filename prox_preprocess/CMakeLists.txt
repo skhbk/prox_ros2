@@ -19,7 +19,6 @@ ament_auto_add_library(
   SHARED
   src/concatenate_clouds_node.cpp
   src/image_smoothing_node.cpp
-  src/filters.cpp
   src/cloud_processor_node.cpp
 )
 target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES})
