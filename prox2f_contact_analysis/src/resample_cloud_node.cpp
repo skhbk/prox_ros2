@@ -58,6 +58,12 @@ static Mesh reconstruct_mesh(const PCLCloud & cloud)
   pcl::removeNaNFromPointCloud(cloud, indices);
   const auto points = pcl_cloud_to_cgal(cloud, indices);
 
+  Mesh mesh;
+  if (points.size() < 5) {
+    // Return empty mesh
+    return mesh;
+  }
+
   // Surface reconstruction
   using Facet = std::array<std::size_t, 3>;
   std::vector<Facet> facets;
@@ -65,8 +71,6 @@ static Mesh reconstruct_mesh(const PCLCloud & cloud)
     points.begin(), points.end(), std::back_inserter(facets));
 
   // Convert to mesh
-  using Mesh = CGAL::Surface_mesh<Kernel::Point_3>;
-  Mesh mesh;
   CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(points, facets, mesh);
   // CGAL::draw(mesh);
 
@@ -111,10 +115,6 @@ void ResampleCloud::topic_callback(const PointCloud2::SharedPtr input_msg)
   PCLCloud cloud;
   pcl::fromROSMsg(msg, cloud);
 
-  if (cloud.size() < 5) {
-    return;
-  }
-
   const auto resampled_cloud = this->resample_cloud(cloud, 20);
 
   PointCloud2 output_msg;
@@ -130,6 +130,13 @@ PCLCloud ResampleCloud::resample_cloud(const PCLCloud & cloud, uint16_t dpi) con
 
   // Surface reconstruction
   const auto mesh = reconstruct_mesh(cloud);
+
+  if (mesh.is_empty()) {
+    // Return empty point cloud
+    PCLCloud empty_cloud;
+    empty_cloud.header = cloud.header;
+    return empty_cloud;
+  }
 
   // AABB tree
   using AABBPrimitive = CGAL::AABB_face_graph_triangle_primitive<Mesh>;
