@@ -31,6 +31,7 @@ public:
 public:
   Robotiq2F85Fingertip();
   std::vector<Kernel::Ray_3> get_rays(uint16_t dpi) const override;
+  std::vector<std::vector<Kernel::Ray_3>> get_organized_rays(uint16_t dpi) const override;
 };
 }  // namespace contact
 }  // namespace prox

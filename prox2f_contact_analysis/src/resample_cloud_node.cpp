@@ -147,18 +147,29 @@ PCLCloud ResampleCloud::resample_cloud(const PCLCloud & cloud, uint16_t dpi) con
   // Ray intersection
   PCLCloud resampled_cloud;
   resampled_cloud.header = cloud.header;
-  const auto rays = contact_surface_->get_rays(dpi);
-  for (const auto & ray : rays) {
-    const auto intersection = tree.first_intersection(ray);
-    if (!intersection) {
-      continue;
-    }
-    const auto point = boost::get<Kernel::Point_3>(&(intersection->first));
-    if (point) {
-      resampled_cloud.emplace_back(
-        CGAL::to_double(point->x()), CGAL::to_double(point->y()), CGAL::to_double(point->z()));
+  const auto rays = contact_surface_->get_organized_rays(dpi);
+  const std::size_t height = rays.size();
+  const std::size_t width = rays.front().size();
+  resampled_cloud.reserve(height * width);
+  for (const auto & row : rays) {
+    for (const auto & ray : row) {
+      const auto intersection = tree.first_intersection(ray);
+      pcl::PointXYZ point;
+      if (!intersection) {
+        point = {NAN, NAN, NAN};
+      } else {
+        const auto point_cgal = boost::get<Kernel::Point_3>(&(intersection->first));
+        assert(point_cgal);
+        point = {
+          static_cast<float>(CGAL::to_double(point_cgal->x())),
+          static_cast<float>(CGAL::to_double(point_cgal->y())),
+          static_cast<float>(CGAL::to_double(point_cgal->z()))};
+      }
+      resampled_cloud.transient_push_back(point);
     }
   }
+  resampled_cloud.resize(width, height);
+  assert(resampled_cloud.isOrganized());
 
   return resampled_cloud;
 }
