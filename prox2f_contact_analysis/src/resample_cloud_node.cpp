@@ -21,6 +21,7 @@
 #include <CGAL/Advancing_front_surface_reconstruction.h>
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
 #include <CGAL/Surface_mesh.h>
+#include <pcl/filters/filter_indices.h>
 #include <pcl_conversions/pcl_conversions.h>
 
 #include <memory>
@@ -35,13 +36,15 @@ using sensor_msgs::msg::PointCloud2;
 using std::placeholders::_1;
 using Mesh = CGAL::Surface_mesh<Kernel::Point_3>;
 
-static std::vector<Kernel::Point_3> pcl_cloud_to_cgal(const PCLCloud & cloud)
+static std::vector<Kernel::Point_3> pcl_cloud_to_cgal(
+  const PCLCloud & cloud, const pcl::Indices & indices)
 {
   std::vector<Kernel::Point_3> points;
-  points.reserve(cloud.size());
+  points.reserve(indices.size());
 
-  for (const auto & e : cloud.points) {
-    points.emplace_back(e.x, e.y, e.z);
+  for (const auto & index : indices) {
+    const auto & point = cloud.at(index);
+    points.emplace_back(point.x, point.y, point.z);
   }
 
   return points;
@@ -51,7 +54,9 @@ static Mesh reconstruct_mesh(const PCLCloud & cloud)
 {
   assert(cloud.isOrganized());
 
-  const auto points = pcl_cloud_to_cgal(cloud);
+  pcl::Indices indices;
+  pcl::removeNaNFromPointCloud(cloud, indices);
+  const auto points = pcl_cloud_to_cgal(cloud, indices);
 
   // Surface reconstruction
   using Facet = std::array<std::size_t, 3>;
