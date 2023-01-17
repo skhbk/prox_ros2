@@ -26,7 +26,7 @@ namespace contact
 class Robotiq2F85Fingertip : public ContactSurface
 {
 public:
-  static constexpr float width = .022, height = .038;
+  static constexpr float width = .022, height = .038, stroke = .085;
 
 public:
   Robotiq2F85Fingertip();

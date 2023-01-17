@@ -83,6 +83,10 @@ public:
     // Gripper width
     constexpr auto y_lim = Robotiq2F85Fingertip::width / 2;
 
+    if (cloud.empty()) {
+      return Robotiq2F85Fingertip::stroke;
+    }
+
     float x_max = 0;
     for (const auto & e : cloud) {
       const auto x = std::abs(e.x);
