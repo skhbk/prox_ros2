@@ -21,6 +21,7 @@
 #include <CGAL/Advancing_front_surface_reconstruction.h>
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
 #include <CGAL/Surface_mesh.h>
+#include <pcl/filters/filter_indices.h>
 #include <pcl_conversions/pcl_conversions.h>
 
 #include <memory>
@@ -33,6 +34,48 @@ namespace contact
 {
 using sensor_msgs::msg::PointCloud2;
 using std::placeholders::_1;
+using Mesh = CGAL::Surface_mesh<Kernel::Point_3>;
+
+static std::vector<Kernel::Point_3> pcl_cloud_to_cgal(
+  const PCLCloud & cloud, const pcl::Indices & indices)
+{
+  std::vector<Kernel::Point_3> points;
+  points.reserve(indices.size());
+
+  for (const auto & index : indices) {
+    const auto & point = cloud.at(index);
+    points.emplace_back(point.x, point.y, point.z);
+  }
+
+  return points;
+}
+
+static Mesh reconstruct_mesh(const PCLCloud & cloud)
+{
+  assert(cloud.isOrganized());
+
+  pcl::Indices indices;
+  pcl::removeNaNFromPointCloud(cloud, indices);
+  const auto points = pcl_cloud_to_cgal(cloud, indices);
+
+  Mesh mesh;
+  if (points.size() < 5) {
+    // Return empty mesh
+    return mesh;
+  }
+
+  // Surface reconstruction
+  using Facet = std::array<std::size_t, 3>;
+  std::vector<Facet> facets;
+  CGAL::advancing_front_surface_reconstruction(
+    points.begin(), points.end(), std::back_inserter(facets));
+
+  // Convert to mesh
+  CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(points, facets, mesh);
+  // CGAL::draw(mesh);
+
+  return mesh;
+}
 
 ResampleCloud::ResampleCloud(const rclcpp::NodeOptions & options)
 : Node("resample_cloud", options),
@@ -72,30 +115,11 @@ void ResampleCloud::topic_callback(const PointCloud2::SharedPtr input_msg)
   PCLCloud cloud;
   pcl::fromROSMsg(msg, cloud);
 
-  if (cloud.size() < 5) {
-    return;
-  }
-
   const auto resampled_cloud = this->resample_cloud(cloud, 20);
 
   PointCloud2 output_msg;
   pcl::toROSMsg(resampled_cloud, output_msg);
   publisher_->publish(output_msg);
-}
-
-std::vector<Kernel::Point_3> ResampleCloud::pcl_cloud_to_cgal(const PCLCloud & cloud) const
-{
-  assert(!cloud.empty());
-  assert(cloud.is_dense);
-
-  std::vector<Kernel::Point_3> points;
-  points.reserve(cloud.size());
-
-  for (const auto & e : cloud.points) {
-    points.emplace_back(e.x, e.y, e.z);
-  }
-
-  return points;
 }
 
 PCLCloud ResampleCloud::resample_cloud(const PCLCloud & cloud, uint16_t dpi) const
@@ -104,19 +128,15 @@ PCLCloud ResampleCloud::resample_cloud(const PCLCloud & cloud, uint16_t dpi) con
   this->get_parameter("surface_frame_id", surface_frame_id);
   assert(surface_frame_id == cloud.header.frame_id);
 
-  const auto points = this->pcl_cloud_to_cgal(cloud);
-
   // Surface reconstruction
-  using Facet = std::array<std::size_t, 3>;
-  std::vector<Facet> facets;
-  CGAL::advancing_front_surface_reconstruction(
-    points.begin(), points.end(), std::back_inserter(facets));
+  const auto mesh = reconstruct_mesh(cloud);
 
-  // Convert to mesh
-  using Mesh = CGAL::Surface_mesh<Kernel::Point_3>;
-  Mesh mesh;
-  CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(points, facets, mesh);
-  // CGAL::draw(mesh);
+  if (mesh.is_empty()) {
+    // Return empty point cloud
+    PCLCloud empty_cloud;
+    empty_cloud.header = cloud.header;
+    return empty_cloud;
+  }
 
   // AABB tree
   using AABBPrimitive = CGAL::AABB_face_graph_triangle_primitive<Mesh>;
@@ -127,18 +147,29 @@ PCLCloud ResampleCloud::resample_cloud(const PCLCloud & cloud, uint16_t dpi) con
   // Ray intersection
   PCLCloud resampled_cloud;
   resampled_cloud.header = cloud.header;
-  const auto rays = contact_surface_->get_rays(dpi);
-  for (const auto & ray : rays) {
-    const auto intersection = tree.first_intersection(ray);
-    if (!intersection) {
-      continue;
-    }
-    const auto point = boost::get<Kernel::Point_3>(&(intersection->first));
-    if (point) {
-      resampled_cloud.emplace_back(
-        CGAL::to_double(point->x()), CGAL::to_double(point->y()), CGAL::to_double(point->z()));
+  const auto rays = contact_surface_->get_organized_rays(dpi);
+  const std::size_t height = rays.size();
+  const std::size_t width = rays.front().size();
+  resampled_cloud.reserve(height * width);
+  for (const auto & row : rays) {
+    for (const auto & ray : row) {
+      const auto intersection = tree.first_intersection(ray);
+      pcl::PointXYZ point;
+      if (!intersection) {
+        point = {NAN, NAN, NAN};
+      } else {
+        const auto point_cgal = boost::get<Kernel::Point_3>(&(intersection->first));
+        assert(point_cgal);
+        point = {
+          static_cast<float>(CGAL::to_double(point_cgal->x())),
+          static_cast<float>(CGAL::to_double(point_cgal->y())),
+          static_cast<float>(CGAL::to_double(point_cgal->z()))};
+      }
+      resampled_cloud.transient_push_back(point);
     }
   }
+  resampled_cloud.resize(width, height);
+  assert(resampled_cloud.isOrganized());
 
   return resampled_cloud;
 }

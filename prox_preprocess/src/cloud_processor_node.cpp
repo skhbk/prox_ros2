@@ -12,13 +12,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "prox_preprocess/filters.hpp"
-
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
 #include <pcl/filters/filter.h>
+#include <pcl/filters/passthrough.h>
+#include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -61,10 +61,9 @@ public:
 
     pcl::PointCloud<pcl::PointXYZ> cloud;
     pcl::fromROSMsg(*input_msg, cloud);
+    assert(cloud.isOrganized());
 
-    // Remove NaN
-    pcl::Indices index;
-    pcl::removeNaNFromPointCloud(cloud, cloud, index);
+    const auto cloud_ptr = pcl::make_shared<decltype(cloud)>(cloud);
 
     // Pass through
     {
@@ -73,12 +72,20 @@ public:
       this->get_parameter("pass_through/field_name", field_name);
       this->get_parameter("pass_through/limit_min", limit_min);
       this->get_parameter("pass_through/limit_max", limit_max);
-      cloud = filters::pass_through(cloud, field_name, limit_min, limit_max);
+
+      pcl::PassThrough<pcl::PointXYZ> filter(true);
+      filter.setInputCloud(cloud_ptr);
+      filter.setFilterFieldName(field_name);
+      filter.setFilterLimits(limit_min, limit_max);
+      filter.setKeepOrganized(true);
+      decltype(cloud) cloud_out;
+      filter.filter(cloud_out);
+      cloud = cloud_out;
     }
 
-    if (cloud.empty()) {
-      return;
-    }
+    // Get indices without NaN points
+    pcl::Indices indices;
+    pcl::removeNaNFromPointCloud(*cloud_ptr, indices);
 
     // Remove outliers
     {
@@ -86,11 +93,16 @@ public:
       int64_t min_neighbors;
       this->get_parameter("outlier/radius", radius);
       this->get_parameter("outlier/min_neighbors", min_neighbors);
-      cloud = filters::remove_outliers(cloud, radius, min_neighbors);
-    }
 
-    if (cloud.empty()) {
-      return;
+      pcl::RadiusOutlierRemoval<pcl::PointXYZ> filter(true);
+      filter.setInputCloud(cloud_ptr);
+      filter.setIndices(pcl::make_shared<decltype(indices)>(indices));
+      filter.setRadiusSearch(radius);
+      filter.setMinNeighborsInRadius(min_neighbors);
+      filter.setKeepOrganized(true);
+      decltype(cloud) cloud_out;
+      filter.filter(cloud_out);
+      cloud = cloud_out;
     }
 
     pcl::toROSMsg(cloud, output_msg);

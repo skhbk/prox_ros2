@@ -29,6 +29,7 @@ class ContactSurface
 {
 public:
   virtual std::vector<Kernel::Ray_3> get_rays(uint16_t dpi) const = 0;
+  virtual std::vector<std::vector<Kernel::Ray_3>> get_organized_rays(uint16_t dpi) const = 0;
 };
 }  // namespace contact
 }  // namespace prox

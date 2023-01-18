@@ -44,32 +44,29 @@ void ContactMapping::topic_callback(const PointCloud2::SharedPtr input_msg)
   if (publisher_->get_subscription_count() == 0) {
     return;
   }
-  if (input_msg->data.empty()) {
-    return;
-  }
 
   pcl::PointCloud<pcl::PointXYZ> cloud, contact_cloud;
   pcl::fromROSMsg(*input_msg, cloud);
   contact_cloud.header = cloud.header;
 
-  // Find min z
-  float z_min = cloud.at(0).z;
-  for (const auto & e : cloud) {
-    if (e.z < z_min) {
-      z_min = e.z;
+  if (!cloud.empty()) {
+    float penetration, margin;
+    this->get_parameter("penetration", penetration);
+    this->get_parameter("margin", margin);
+
+    // If min(z) < margin, update the offset
+    float offset = margin;
+    for (const auto & e : cloud) {
+      if (!std::isnan(e.z) && e.z < offset) {
+        offset = e.z;
+      }
     }
-  }
 
-  float penetration, margin;
-  this->get_parameter("penetration", penetration);
-  this->get_parameter("margin", margin);
-
-  const float offset = z_min < margin ? z_min : margin;
-
-  for (const auto & e : cloud) {
-    const float z = e.z - offset;
-    if (z <= penetration) {
-      contact_cloud.emplace_back(e.x, e.y, z - penetration);
+    for (const auto & e : cloud) {
+      const float z = e.z - offset;
+      if (!std::isnan(z) && z <= penetration) {
+        contact_cloud.emplace_back(e.x, e.y, z - penetration);
+      }
     }
   }
 

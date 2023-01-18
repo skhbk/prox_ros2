@@ -24,21 +24,38 @@ Robotiq2F85Fingertip::Robotiq2F85Fingertip() {}
 
 std::vector<Kernel::Ray_3> Robotiq2F85Fingertip::get_rays(uint16_t dpi) const
 {
+  auto organized_rays = this->get_organized_rays(dpi);
+  const std::size_t size = organized_rays.size() * organized_rays.front().size();
+
+  std::vector<Kernel::Ray_3> rays;
+  rays.reserve(size);
+
+  for (auto & row : organized_rays) {
+    rays.insert(rays.end(), row.begin(), row.end());
+  }
+  assert(rays.size() == size);
+
+  return rays;
+}
+
+std::vector<std::vector<Kernel::Ray_3>> Robotiq2F85Fingertip::get_organized_rays(uint16_t dpi) const
+{
   const float dpm = dpi / .0254;
   const uint16_t rows = width * dpm;
   const uint16_t cols = height * dpm;
   const float pitch = 1 / dpm;
 
-  const Kernel::Point_3 top_left(-height / 2, width / 2, 0);
+  const Kernel::Point_3 origin(-height / 2, -width / 2, 0);
   const Kernel::Vector_3 direction(0, 0, 1);
 
-  std::vector<Kernel::Ray_3> rays;
-  rays.reserve(cols * rows);
+  std::vector<std::vector<Kernel::Ray_3>> rays;
+  rays.resize(rows);
 
-  for (uint16_t i = 0; i < rows; ++i) {
-    for (uint16_t j = 0; j < cols; ++j) {
-      const auto point = top_left + Kernel::Vector_3(pitch * j, -pitch * i, 0);
-      rays.emplace_back(point, direction);
+  for (uint16_t y = 0; y < rows; ++y) {
+    rays.at(y).reserve(cols);
+    for (uint16_t x = 0; x < cols; ++x) {
+      const auto point = origin + Kernel::Vector_3(pitch * x, pitch * y, 0);
+      rays.at(y).emplace_back(point, direction);
     }
   }
 

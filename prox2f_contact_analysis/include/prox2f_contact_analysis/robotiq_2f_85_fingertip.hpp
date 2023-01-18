@@ -26,11 +26,12 @@ namespace contact
 class Robotiq2F85Fingertip : public ContactSurface
 {
 public:
-  static constexpr float width = .022, height = .038;
+  static constexpr float width = .022, height = .038, stroke = .085;
 
 public:
   Robotiq2F85Fingertip();
   std::vector<Kernel::Ray_3> get_rays(uint16_t dpi) const override;
+  std::vector<std::vector<Kernel::Ray_3>> get_organized_rays(uint16_t dpi) const override;
 };
 }  // namespace contact
 }  // namespace prox
