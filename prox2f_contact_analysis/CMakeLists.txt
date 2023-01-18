@@ -24,6 +24,7 @@ ament_auto_add_library(
   src/resample_cloud_node.cpp
   src/contact_mapping_node.cpp
   src/robotiq_2f_85_fingertip.cpp
+  src/virtual_wrench_node.cpp
 )
 target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES} CGAL::CGAL)
 
@@ -32,6 +33,7 @@ rclcpp_components_register_nodes(
   PLUGIN
   "prox::contact::ResampleCloud"
   "prox::contact::ContactMapping"
+  "prox::contact::VirtualWrench"
 )
 
 if(BUILD_TESTING)

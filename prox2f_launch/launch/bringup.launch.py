@@ -150,6 +150,20 @@ def generate_launch_description():
             )
         )
 
+    contact_analysis_nodes.append(
+        ComposableNode(
+            package="prox2f_contact_analysis",
+            plugin="prox::contact::VirtualWrench",
+            namespace="contact_analysis",
+            remappings=[
+                ("input1/points", "left/points"),
+                ("input2/points", "right/points"),
+            ],
+            parameters=[{"reference_frame_id": "tool0"}],
+            extra_arguments=[{"use_intra_process_comms": True}],
+        )
+    )
+
     contact_analysis_container = ComposableNodeContainer(
         name="contact_analysis_container",
         namespace="",
