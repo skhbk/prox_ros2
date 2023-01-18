@@ -50,23 +50,21 @@ void ContactMapping::topic_callback(const PointCloud2::SharedPtr input_msg)
   contact_cloud.header = cloud.header;
 
   if (!cloud.empty()) {
-    // Find min z
-    float z_min = cloud.at(0).z;
-    for (const auto & e : cloud) {
-      if (e.z < z_min) {
-        z_min = e.z;
-      }
-    }
-
     float penetration, margin;
     this->get_parameter("penetration", penetration);
     this->get_parameter("margin", margin);
 
-    const float offset = z_min < margin ? z_min : margin;
+    // If min(z) < margin, update the offset
+    float offset = margin;
+    for (const auto & e : cloud) {
+      if (!std::isnan(e.z) && e.z < offset) {
+        offset = e.z;
+      }
+    }
 
     for (const auto & e : cloud) {
       const float z = e.z - offset;
-      if (z <= penetration) {
+      if (!std::isnan(z) && z <= penetration) {
         contact_cloud.emplace_back(e.x, e.y, z - penetration);
       }
     }
