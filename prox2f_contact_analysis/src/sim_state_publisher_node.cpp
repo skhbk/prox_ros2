@@ -36,14 +36,16 @@ using std::placeholders::_1;
 
 class SimStatePublisher : public rclcpp::Node
 {
+  float contact_width_;
   rclcpp::Subscription<PointCloud2>::SharedPtr subscription_;
   rclcpp::Publisher<JointState>::SharedPtr publisher_;
 
 public:
-  SimStatePublisher() : Node("sim_state_publisher")
+  SimStatePublisher() : Node("sim_state_publisher"), contact_width_(Robotiq2F85Fingertip::stroke)
   {
     this->declare_parameter<std::string>("joint", "sim_robotiq_85_left_knuckle_joint");
     this->declare_parameter<std::string>("base_link", "robotiq_85_base_link");
+    this->declare_parameter<double>("weight", 1);
 
     subscription_ = this->create_subscription<PointCloud2>(
       "input/points", rclcpp::SensorDataQoS(),
@@ -72,7 +74,13 @@ public:
     pcl::fromROSMsg(*input_msg, cloud);
 
     const auto contact_width = this->get_contact_width(cloud);
-    const auto position = this->width_to_position(contact_width);
+
+    // EMA filter
+    double weight;
+    this->get_parameter("weight", weight);
+    contact_width_ = contact_width * weight + contact_width_ * (1 - weight);
+
+    const auto position = this->width_to_position(contact_width_);
     msg.position.push_back(position);
 
     publisher_->publish(msg);

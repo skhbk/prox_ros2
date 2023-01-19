@@ -88,6 +88,7 @@ def generate_launch_description():
                     {
                         "joint": "grp_ghost_left_finger1_joint",
                         "base_link": "tool0",
+                        "weight": 0.5,
                     }
                 ],
             ),
