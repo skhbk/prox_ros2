@@ -159,7 +159,7 @@ def generate_launch_description():
                 ("input1/points", "left/points"),
                 ("input2/points", "right/points"),
             ],
-            parameters=[{"reference_frame_id": "tool0"}],
+            parameters=[{"reference_frame_id": "tcp"}],
             extra_arguments=[{"use_intra_process_comms": True}],
         )
     )
