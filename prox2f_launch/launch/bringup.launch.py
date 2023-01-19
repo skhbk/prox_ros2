@@ -67,8 +67,8 @@ def generate_launch_description():
                 parameters=[gripper_description],
             ),
             Node(
-                package="joint_state_publisher_gui",
-                executable="joint_state_publisher_gui",
+                package="joint_state_publisher",
+                executable="joint_state_publisher",
             ),
             # Grasp simulation
             PushRosNamespace("ghost"),
@@ -93,8 +93,8 @@ def generate_launch_description():
                 ],
             ),
             Node(
-                package="joint_state_publisher_gui",
-                executable="joint_state_publisher_gui",
+                package="joint_state_publisher",
+                executable="joint_state_publisher",
                 parameters=[{"source_list": ["reference/joint_states"]}],
             ),
         ]
