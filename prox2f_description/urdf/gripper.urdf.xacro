@@ -61,6 +61,16 @@
         <xacro:fingertip_frame name="right_fingertip" parent="$(arg prefix)right_fingertip_link" />
     </xacro:if>
 
+    <!-- Frame for TCP -->
+    <xacro:unless value="$(arg ghost)">
+        <link name="tcp" />
+        <joint name="tcp_joint" type="fixed">
+            <parent link="$(arg parent)" />
+            <child link="tcp" />
+            <origin xyz="0 0 0.15" rpy="0 0 0" />
+        </joint>
+    </xacro:unless>
+
     <!-- Gazebo -->
     <xacro:if value="$(arg sim_gazebo)">
         <!-- ros2_control -->
