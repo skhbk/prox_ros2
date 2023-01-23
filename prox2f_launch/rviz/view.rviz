@@ -421,7 +421,7 @@ Visualization Manager:
       Arrow Width: 0.009999999776482582
       Class: rviz_default_plugins/Wrench
       Enabled: true
-      Force Arrow Scale: 0.10000000149011612
+      Force Arrow Scale: 0.029999999329447746
       Force Color: 246; 65; 108
       History Length: 1
       Name: Wrench

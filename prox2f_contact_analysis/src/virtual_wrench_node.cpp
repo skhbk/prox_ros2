@@ -40,6 +40,7 @@ VirtualWrench::VirtualWrench(const rclcpp::NodeOptions & options)
 : Node("virtual_wrench", options), tf_buffer_(this->get_clock()), tf_listener_(tf_buffer_), sync_(5)
 {
   this->declare_parameter<std::string>("reference_frame_id", "tool0");
+  this->declare_parameter<double>("grasp_force", 1.);  // x-axis grasp force
 
   subscriber1_.subscribe(this, "input1/points", rclcpp::SensorDataQoS().get_rmw_qos_profile());
   subscriber2_.subscribe(this, "input2/points", rclcpp::SensorDataQoS().get_rmw_qos_profile());
@@ -70,12 +71,23 @@ void VirtualWrench::topic_callback(
       return;
     }
   }
-  const auto contact_force = forces.at(0).length() + forces.at(1).length();
-  if (contact_force > 0) {
-    for (auto & torque : torques) {
-      torque /= contact_force;
-    }
+
+  // Compute stiffness
+  double grasp_force;
+  this->get_parameter("grasp_force", grasp_force);
+  double penetration_magnitude = 0;
+  for (const auto & force : forces) {
+    penetration_magnitude += std::abs(force.x());
   }
+  const double stiffness = penetration_magnitude > 0 ? grasp_force / penetration_magnitude : 0;
+
+  for (auto & force : forces) {
+    force *= stiffness;
+  }
+  for (auto & torque : torques) {
+    torque *= stiffness;
+  }
+
   tf2::convert(sum(forces), output_msg.wrench.force);
   tf2::convert(sum(torques), output_msg.wrench.torque);
 
