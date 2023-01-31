@@ -115,7 +115,7 @@ Wrench VirtualWrench::compute_wrench(const PointCloud2 & cloud_msg) const
       continue;
     }
     const tf2::Vector3 position{point.x, point.y, 0};
-    const tf2::Vector3 force{0, 0, std::abs(point.z)};
+    const tf2::Vector3 force{0, 0, -std::abs(point.z)};
     const auto torque = position.cross(force);
     force_src += force;
     torque_src += torque;
