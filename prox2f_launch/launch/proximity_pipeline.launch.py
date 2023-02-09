@@ -14,15 +14,7 @@
 
 from launch import LaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.actions import (
-    GroupAction,
-    IncludeLaunchDescription,
-    TimerAction,
-    RegisterEventHandler,
-    EmitEvent,
-)
-from launch.events import Shutdown
-from launch.event_handlers import OnProcessExit
+from launch.actions import GroupAction, IncludeLaunchDescription, TimerAction
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node, PushRosNamespace, ComposableNodeContainer
@@ -30,47 +22,23 @@ from launch_ros.descriptions import ComposableNode
 
 
 def generate_launch_description():
-    gripper_urdf = PathJoinSubstitution(
-        [FindPackageShare("prox2f_description"), "urdf", "gripper.urdf.xacro"]
-    )
-    gripper_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name="xacro")]),
-            " ",
-            gripper_urdf,
-            " ",
-            "name:=grp",
-        ]
-    )
     ghost_gripper_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
-            gripper_urdf,
+            PathJoinSubstitution(
+                [FindPackageShare("prox2f_description"), "urdf", "gripper.urdf.xacro"]
+            ),
             " ",
             "name:=grp_ghost",
             " ",
             "prefix:=grp_ghost_",
-            " ",
-            "ghost:=true",
         ]
     )
-    gripper_description = {"robot_description": gripper_description_content}
     ghost_gripper_description = {"robot_description": ghost_gripper_description_content}
 
-    gripper_launch = GroupAction(
+    ghost_gripper_launch = GroupAction(
         [
-            PushRosNamespace("grp"),
-            Node(
-                package="robot_state_publisher",
-                executable="robot_state_publisher",
-                parameters=[gripper_description],
-            ),
-            Node(
-                package="joint_state_publisher",
-                executable="joint_state_publisher",
-            ),
-            # Grasp simulation
             PushRosNamespace("ghost"),
             Node(
                 package="robot_state_publisher",
@@ -146,7 +114,7 @@ def generate_launch_description():
                 remappings=[
                     ("input/points", "resampled/points"),
                 ],
-                parameters=[{"penetration": 0.002}],
+                parameters=[{"penetration": 0.005, "margin": 0.004}],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
@@ -175,28 +143,9 @@ def generate_launch_description():
         arguments=["--ros-args", "--log-level", "warn"],
     )
 
-    # Rviz
-    rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare("prox2f_launch"), "rviz", "view.rviz"]
-    )
-    rviz_node = Node(
-        package="rviz2",
-        executable="rviz2",
-        namespace="",
-        arguments=["-d", rviz_config_file],
-        emulate_tty=True,
-    )
-
     actions = [
-        gripper_launch,
+        ghost_gripper_launch,
         contact_analysis_container,
         TimerAction(period=1.0, actions=[proximity_launch]),
-        rviz_node,
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=rviz_node,
-                on_exit=[EmitEvent(event=Shutdown(reason="Window closed"))],
-            )
-        ),
     ]
     return LaunchDescription(actions)
