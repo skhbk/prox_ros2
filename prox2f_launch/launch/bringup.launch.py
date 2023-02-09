@@ -30,6 +30,9 @@ def generate_launch_description():
     args = []
     args.append(DeclareLaunchArgument("robot_ip", default_value="192.168.11.180"))
     args.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
+    args.append(
+        DeclareLaunchArgument("kinematics_file", default_value="ur5e_kinematics.yaml")
+    )
 
     robot_description_content = Command(
         [
@@ -46,6 +49,15 @@ def generate_launch_description():
             " ",
             "use_fake_hardware:=",
             LaunchConfiguration("use_fake_hardware"),
+            " ",
+            "kinematics_params:=",
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("prox2f_description"),
+                    "config",
+                    LaunchConfiguration("kinematics_file"),
+                ]
+            ),
         ]
     )
     robot_description = {"robot_description": robot_description_content}
