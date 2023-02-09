@@ -1,0 +1,68 @@
+prox::wrench_controller:
+  joints:
+    {
+      type: string_array,
+      description: "Specifies which joints will be used by the controller.",
+      read_only: true,
+    }
+
+  command_topic: { type: string, default_value: "~/commands" }
+
+  enabled_axes: { type: bool_array, validation: { fixed_size<>: 6 } }
+
+  kinematics:
+    end_effector_link:
+      {
+        type: string,
+        description: "Specifies the end effector link of the robot description used by the kinematics plugin.",
+      }
+    plugin_name:
+      {
+        type: string,
+        default_value: "kinematics_interface_kdl/KinematicsInterfaceKDL",
+        description: "Specifies the name of the kinematics plugin to load.",
+      }
+    plugin_package:
+      {
+        type: string,
+        default_value: "kinematics_interface",
+        description: "Specifies the package name that contains the kinematics plugin.",
+      }
+    alpha:
+      {
+        type: double,
+        default_value: 0.001,
+        description: "Specifies the damping coefficient for the Jacobian pseudo inverse.",
+      }
+
+  pid:
+    p:
+      {
+        type: double_array,
+        default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        validation: { fixed_size<>: 6 },
+      }
+    i:
+      {
+        type: double_array,
+        default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        validation: { fixed_size<>: 6 },
+      }
+    d:
+      {
+        type: double_array,
+        default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        validation: { fixed_size<>: 6 },
+      }
+    i_clamp:
+      {
+        type: double_array,
+        default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        validation: { fixed_size<>: 6, lower_element_bounds<>: 0.0 },
+      }
+    filter_coefficient:
+      {
+        type: double,
+        default_value: 0.3,
+        description: "Specifies the coefficient for the commands' exponential filter.",
+      }
