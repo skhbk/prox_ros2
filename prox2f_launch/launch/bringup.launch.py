@@ -13,9 +13,15 @@
 #  limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, RegisterEventHandler
+from launch.actions import (
+    DeclareLaunchArgument,
+    EmitEvent,
+    ExecuteProcess,
+    RegisterEventHandler,
+)
 from launch.conditions import UnlessCondition
-from launch.event_handlers import OnProcessExit
+from launch.event_handlers import OnShutdown, OnProcessExit
+from launch.events import Shutdown
 from launch.substitutions import (
     LaunchConfiguration,
     Command,
@@ -156,6 +162,16 @@ def generate_launch_description():
         emulate_tty=True,
     )
 
+    # VL53L5CX
+    activate_proximity = ExecuteProcess(
+        cmd=[FindExecutable(name="ros2"), "lifecycle set /vl53l5cx activate"],
+        shell=True,
+    )
+    deactivate_proximity = ExecuteProcess(
+        cmd=[FindExecutable(name="ros2"), "lifecycle set /vl53l5cx deactivate"],
+        shell=True,
+    )
+
     actions = [
         ur_control_node,
         dashboard_client_node,
@@ -168,8 +184,18 @@ def generate_launch_description():
         wrench_controller_spawner,
         RegisterEventHandler(
             event_handler=OnProcessExit(
-                target_action=joint_state_broadcaster_spawner, on_exit=[rviz_node]
+                target_action=joint_state_broadcaster_spawner,
+                on_exit=[rviz_node, activate_proximity],
             )
+        ),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=rviz_node,
+                on_exit=[EmitEvent(event=Shutdown(reason="Window closed"))],
+            )
+        ),
+        RegisterEventHandler(
+            event_handler=OnShutdown(on_shutdown=[deactivate_proximity])
         ),
     ]
 
