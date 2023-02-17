@@ -1,0 +1,86 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+
+    wrench_controller:
+      type: prox2f_control/WrenchController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    io_and_status_controller:
+      type: ur_controllers/GPIOController
+
+    speed_scaling_state_broadcaster:
+      type: ur_controllers/SpeedScalingStateBroadcaster
+
+    force_torque_sensor_broadcaster:
+      type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
+
+wrench_controller:
+  ros__parameters:
+    update_rate: 30
+    joints:
+      - shoulder_pan_joint
+      - shoulder_lift_joint
+      - elbow_joint
+      - wrist_1_joint
+      - wrist_2_joint
+      - wrist_3_joint
+    command_topic: /contact_analysis/wrench_stamped
+    kinematics:
+      end_effector_link: tcp
+    enabled_axes:
+      - true
+      - false
+      - false
+      - false
+      - false
+      - true
+    pid:
+      p:
+        - 0.005
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 40.0
+      i:
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+      d:
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+      i_clamp:
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.1
+      filter_coefficient: 0.7
+
+speed_scaling_state_broadcaster:
+  ros__parameters:
+    state_publish_rate: 100.0
+
+force_torque_sensor_broadcaster:
+  ros__parameters:
+    sensor_name: tcp_fts_sensor
+    state_interface_names:
+      - force.x
+      - force.y
+      - force.z
+      - torque.x
+      - torque.y
+      - torque.z
+    frame_id: tool0
+    topic_name: ft_data

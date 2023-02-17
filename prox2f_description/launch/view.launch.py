@@ -24,20 +24,18 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     # Descriptions
-    ur_description_content = Command(
+    robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("ur_description"), "urdf", "ur.urdf.xacro"]
+                [FindPackageShare("prox2f_description"), "urdf", "prox2f.urdf.xacro"]
             ),
             " ",
-            "name:=ur",
-            " ",
-            "ur_type:=ur5e",
+            "name:=prox2f",
         ]
     )
-    gripper_description_content = Command(
+    ghost_gripper_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
@@ -45,36 +43,36 @@ def generate_launch_description():
                 [FindPackageShare("prox2f_description"), "urdf", "gripper.urdf.xacro"]
             ),
             " ",
-            "name:=grp",
+            "name:=grp_ghost",
+            " ",
+            "prefix:=grp_ghost_",
         ]
     )
-    ur_description = {"robot_description": ur_description_content}
-    gripper_description = {"robot_description": gripper_description_content}
+    robot_description = {"robot_description": robot_description_content}
+    ghost_gripper_description = {"robot_description": ghost_gripper_description_content}
 
     # robot_state_publisher nodes
     ur_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
-        namespace="ur",
-        parameters=[ur_description],
+        parameters=[robot_description],
     )
     gripper_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
-        namespace="grp",
-        parameters=[gripper_description],
+        namespace="ghost",
+        parameters=[ghost_gripper_description],
     )
 
     # joint_state_publisher nodes
     ur_joint_state_publisher_node = Node(
         package="joint_state_publisher_gui",
         executable="joint_state_publisher_gui",
-        namespace="ur",
     )
     gripper_joint_state_publisher_node = Node(
         package="joint_state_publisher_gui",
         executable="joint_state_publisher_gui",
-        namespace="grp",
+        namespace="ghost",
     )
 
     rviz_node = Node(

@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="$(arg name)">
+  <!-- Parameters -->
+  <xacro:arg name="name" default="" />
+  <xacro:arg name="prefix" default="grp_ghost_" />
+  <xacro:arg name="parent" default="tool0" />
+
+  <!-- Gripper -->
+  <link name="$(arg parent)" />
+  <xacro:include filename="$(find robotiq_2f_85_description)/urdf/robotiq_2f_85_macro.xacro" />
+  <xacro:robotiq_2f_85
+    name="$(arg name)"
+    prefix="$(arg prefix)"
+    ur_coupling="true"
+    mimic="true" />
+  <joint name="$(arg prefix)coupling_joint" type="fixed">
+    <parent link="$(arg parent)" />
+    <child link="$(arg prefix)coupling_link" />
+    <origin xyz="0 0 0" rpy="0 0 ${pi}" />
+  </joint>
+
+  <!-- Frames for fingertip -->
+  <xacro:macro name="fingertip_frame" params="name parent">
+    <link name="${name}" />
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${parent}" />
+      <child link="${name}" />
+      <origin xyz="-13.86e-3 0 18.5e-3" rpy="0 -${pi/2} 0" />
+    </joint>
+  </xacro:macro>
+  <xacro:fingertip_frame name="left_fingertip" parent="$(arg prefix)left_fingertip_link" />
+  <xacro:fingertip_frame name="right_fingertip" parent="$(arg prefix)right_fingertip_link" />
+</robot>
