@@ -10,11 +10,19 @@ ament_auto_find_build_dependencies()
 
 find_package(PCL REQUIRED COMPONENTS common surface)
 
-ament_auto_add_library(${PROJECT_NAME} SHARED src/triangulation_node.cpp)
+ament_auto_add_library(
+  ${PROJECT_NAME}
+  SHARED
+  src/triangulation_node.cpp
+  src/mesh_to_marker_node.cpp
+)
 target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES})
 
 rclcpp_components_register_nodes(
-  ${PROJECT_NAME} PLUGIN "prox::mesh::Triangulation"
+  ${PROJECT_NAME}
+  PLUGIN
+  "prox::mesh::Triangulation"
+  "prox::mesh::MeshToMarker"
 )
 
 find_package(ament_cmake REQUIRED)
