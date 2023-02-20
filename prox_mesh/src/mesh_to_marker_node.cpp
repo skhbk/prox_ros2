@@ -41,18 +41,23 @@ void MeshToMarker::topic_callback(const MeshStamped::ConstSharedPtr & mesh_msg)
   marker.ns = this->get_namespace();
   marker.id = 0;
   marker.type = Marker::TRIANGLE_LIST;
-  marker.action = Marker::ADD;
-  marker.scale.x = 1;
-  marker.scale.y = 1;
-  marker.scale.z = 1;
-  marker.color.r = 1;
-  marker.color.g = 1;
-  marker.color.b = 1;
-  marker.color.a = 0.5;
-  for (const auto & e : mesh_msg->mesh.triangles) {
-    marker.points.emplace_back(mesh_msg->mesh.vertices.at(e.vertex_indices.at(0)));
-    marker.points.emplace_back(mesh_msg->mesh.vertices.at(e.vertex_indices.at(1)));
-    marker.points.emplace_back(mesh_msg->mesh.vertices.at(e.vertex_indices.at(2)));
+
+  if (mesh_msg->mesh.triangles.empty()) {
+    marker.action = Marker::DELETE;
+  } else {
+    marker.action = Marker::ADD;
+    marker.scale.x = 1;
+    marker.scale.y = 1;
+    marker.scale.z = 1;
+    marker.color.r = 1;
+    marker.color.g = 1;
+    marker.color.b = 1;
+    marker.color.a = 0.5;
+    for (const auto & e : mesh_msg->mesh.triangles) {
+      marker.points.emplace_back(mesh_msg->mesh.vertices.at(e.vertex_indices.at(0)));
+      marker.points.emplace_back(mesh_msg->mesh.vertices.at(e.vertex_indices.at(1)));
+      marker.points.emplace_back(mesh_msg->mesh.vertices.at(e.vertex_indices.at(2)));
+    }
   }
 
   publisher_->publish(marker);
