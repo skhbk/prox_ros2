@@ -9,6 +9,7 @@ find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
 find_package(PCL REQUIRED COMPONENTS common surface)
+find_package(Eigen3 REQUIRED)
 
 ament_auto_add_library(
   ${PROJECT_NAME}
