@@ -1,0 +1,25 @@
+{
+  "build":
+    {
+      "prox-o3":
+        {
+          "cmake-args":
+            [
+              "-DCMAKE_CXX_FLAGS=-O3",
+              "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+              "--no-warn-unused-cli",
+            ],
+          "symlink-install",
+        },
+      "prox-o2":
+        {
+          "cmake-args":
+            [
+              "-DCMAKE_CXX_FLAGS=-O2",
+              "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+              "--no-warn-unused-cli",
+            ],
+          "symlink-install",
+        },
+    },
+}
