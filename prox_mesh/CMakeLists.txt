@@ -5,6 +5,12 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# Make sure to set optimize option (> -O0) bacause the ResampleMesh node (Embree
+# implementation) does not work correctly without optimization. This setting
+# takes priority even if another optimize option is specified in colcon build
+# arguments. Comment this out if necessary.
+add_compile_options(-O2)
+
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
