@@ -1,0 +1,4 @@
+prox::mesh::resample_mesh:
+  width: { type: double, default_value: 0.05 }
+  height: { type: double, default_value: 0.05 }
+  pitch: { type: double, default_value: 0.002 }

@@ -13,139 +13,122 @@
 #  limitations under the License.
 
 from launch import LaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.actions import GroupAction, IncludeLaunchDescription, TimerAction
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
-from launch_ros.substitutions import FindPackageShare
-from launch_ros.actions import Node, PushRosNamespace, ComposableNodeContainer
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 
 
 def generate_launch_description():
-    ghost_gripper_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name="xacro")]),
-            " ",
-            PathJoinSubstitution(
-                [FindPackageShare("prox2f_description"), "urdf", "gripper.urdf.xacro"]
-            ),
-            " ",
-            "name:=grp_ghost",
-            " ",
-            "prefix:=grp_ghost_",
-        ]
+    args = []
+    args.append(
+        DeclareLaunchArgument("left_sensor_namespace", default_value="/vl53l5cx/x2a")
     )
-    ghost_gripper_description = {"robot_description": ghost_gripper_description_content}
+    args.append(
+        DeclareLaunchArgument("right_sensor_namespace", default_value="/vl53l5cx/x2b")
+    )
 
-    ghost_gripper_launch = GroupAction(
-        [
-            PushRosNamespace("ghost"),
-            Node(
-                package="robot_state_publisher",
-                executable="robot_state_publisher",
-                parameters=[ghost_gripper_description],
-            ),
-            Node(
-                package="prox2f_contact_analysis",
-                executable="sim_state_publisher",
+    input_namespaces = [
+        LaunchConfiguration("left_sensor_namespace"),
+        LaunchConfiguration("right_sensor_namespace"),
+    ]
+    output_namespaces = (
+        "left",
+        "right",
+    )
+
+    containers = []
+    for input_namespace, output_namespace in zip(input_namespaces, output_namespaces):
+        composable_nodes = []
+        # Image smoothing
+        composable_nodes.append(
+            ComposableNode(
+                package="prox_preprocess",
+                plugin="prox::ImageSmoothing",
+                namespace=output_namespace,
+                remappings=[("input/image", [input_namespace, "/image"])],
+                parameters=[{"weight": 0.6}],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            )
+        )
+        # Convert to point cloud
+        composable_nodes.append(
+            ComposableNode(
+                package="depth_image_proc",
+                plugin="depth_image_proc::PointCloudXyzNode",
+                namespace=output_namespace,
                 remappings=[
-                    ("input/points", "/proximity/concat/points"),
-                    ("joint_states", "reference/joint_states"),
+                    ("image_rect", "image"),
+                    ("camera_info", [input_namespace, "/camera_info"]),
+                    ("points", "raw_points"),
+                ],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            )
+        )
+        # Preprocess point cloud
+        composable_nodes.append(
+            ComposableNode(
+                package="prox_preprocess",
+                plugin="prox::CloudProcessor",
+                namespace=output_namespace,
+                remappings=[
+                    ("input/points", "raw_points"),
                 ],
                 parameters=[
                     {
-                        "joint": "grp_ghost_left_finger1_joint",
-                        "base_link": "tool0",
-                        "weight": 0.5,
+                        "pass_through/field_name": "z",
+                        "pass_through/limit_min": 0.00,
+                        "pass_through/limit_max": 0.08,
+                        "outlier/radius": 0.01,
+                        "outlier/min_neighbors": 3,
                     }
                 ],
-            ),
-            Node(
-                package="joint_state_publisher",
-                executable="joint_state_publisher",
-                parameters=[{"source_list": ["reference/joint_states"]}],
-            ),
-        ]
-    )
-
-    # Proximity sensors
-    proximity_launch_file = PathJoinSubstitution(
-        [FindPackageShare("prox2f_launch"), "launch", "proximity_sensors.launch.py"]
-    )
-    proximity_launch = GroupAction(
-        [
-            PushRosNamespace("proximity"),
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(proximity_launch_file),
-                launch_arguments={
-                    "left_sensor_namespace": "/vl53l5cx/x2a",
-                    "right_sensor_namespace": "/vl53l5cx/x2b",
-                    "concat_target_frame": "tool0",
-                }.items(),
-            ),
-        ]
-    )
-
-    contact_analysis_nodes = []
-    for finger in ("left", "right"):
-        input_topic = f"/proximity/{finger}/points"
-        namespace = f"contact_analysis/{finger}"
-        surface_frame_id = f"{finger}_fingertip"
-
-        contact_analysis_nodes.append(
-            ComposableNode(
-                package="prox2f_contact_analysis",
-                plugin="prox::contact::ResampleCloud",
-                namespace=namespace,
-                remappings=[
-                    ("input/points", input_topic),
-                    ("points", "resampled/points"),
-                ],
-                parameters=[{"surface_frame_id": surface_frame_id}],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
-
-        contact_analysis_nodes.append(
+        # Triangulation
+        composable_nodes.append(
             ComposableNode(
-                package="prox2f_contact_analysis",
-                plugin="prox::contact::ContactMapping",
-                namespace=namespace,
-                remappings=[
-                    ("input/points", "resampled/points"),
-                ],
-                parameters=[{"penetration": 0.005, "margin": 0.004}],
+                package="prox_mesh",
+                plugin="prox::mesh::Triangulation",
+                namespace=output_namespace,
+                remappings=[("input/points", "points")],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
-
-    contact_analysis_nodes.append(
-        ComposableNode(
-            package="prox2f_contact_analysis",
-            plugin="prox::contact::VirtualWrench",
-            namespace="contact_analysis",
-            remappings=[
-                ("input1/points", "left/points"),
-                ("input2/points", "right/points"),
-            ],
-            parameters=[{"reference_frame_id": "tcp"}],
-            extra_arguments=[{"use_intra_process_comms": True}],
+        # Mesh visualization
+        composable_nodes.append(
+            ComposableNode(
+                package="prox_mesh",
+                plugin="prox::mesh::MeshToMarker",
+                namespace=output_namespace,
+                remappings=[("input/mesh_stamped", "mesh_stamped")],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            )
         )
-    )
+        # Resample
+        composable_nodes.append(
+            ComposableNode(
+                package="prox_mesh",
+                plugin="prox::mesh::ResampleMesh",
+                namespace=output_namespace,
+                remappings=[("input/mesh_stamped", "mesh_stamped")],
+                extra_arguments=[{"use_intra_process_comms": True}],
+            )
+        )
+        # Container
+        containers.append(
+            ComposableNodeContainer(
+                name="proximity_container",
+                namespace=output_namespace,
+                package="rclcpp_components",
+                executable="component_container",
+                composable_node_descriptions=composable_nodes,
+                emulate_tty=True,
+                arguments=["--ros-args", "--log-level", "warn"],
+            )
+        )
 
-    contact_analysis_container = ComposableNodeContainer(
-        name="contact_analysis_container",
-        namespace="",
-        package="rclcpp_components",
-        executable="component_container",
-        composable_node_descriptions=contact_analysis_nodes,
-        emulate_tty=True,
-        arguments=["--ros-args", "--log-level", "warn"],
-    )
+    actions = [*containers]
 
-    actions = [
-        ghost_gripper_launch,
-        contact_analysis_container,
-        TimerAction(period=1.0, actions=[proximity_launch]),
-    ]
-    return LaunchDescription(actions)
+    return LaunchDescription(args + actions)
