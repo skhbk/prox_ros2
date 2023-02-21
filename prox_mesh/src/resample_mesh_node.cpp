@@ -23,6 +23,7 @@
 namespace prox::mesh
 {
 
+using prox_msgs::msg::Grid;
 using prox_msgs::msg::MeshStamped;
 using sensor_msgs::msg::PointCloud2;
 using std::placeholders::_1;
@@ -39,40 +40,35 @@ ResampleMesh::ResampleMesh(const rclcpp::NodeOptions & options)
   subscription_ = this->create_subscription<MeshStamped>(
     "input/mesh_stamped", rclcpp::SensorDataQoS(),
     std::bind(&ResampleMesh::topic_callback, this, _1));
-  publisher_ = this->create_publisher<PointCloud2>("~/points", rclcpp::SensorDataQoS());
+
+  if (params_.publish_cloud) {
+    cloud_publisher_ = this->create_publisher<PointCloud2>("~/points", rclcpp::SensorDataQoS());
+  }
+  if (params_.publish_grid) {
+    grid_publisher_ = this->create_publisher<Grid>("~/grid", rclcpp::SensorDataQoS());
+  }
 }
 
 void ResampleMesh::topic_callback(const MeshStamped::ConstSharedPtr & mesh_msg)
 {
-  if (publisher_->get_subscription_count() == 0) {
-    return;
-  }
-
-  pcl::PointCloud<pcl::PointXYZ> cloud;
-  if (mesh_msg->mesh.triangles.size() > 0) {
+  std::vector<Hit> hits;
+  if (!mesh_msg->mesh.triangles.empty()) {
     raycaster_->load_mesh(mesh_msg->mesh);
-    const auto hits = raycaster_->raycast(this->get_rays());
-
-    cloud.reserve(hits.size());
-    cloud.width = cols_;
-    cloud.height = rows_;
-    for (const auto & hit : hits) {
-      if (hit) {
-        cloud.transient_emplace_back(hit->at(0), hit->at(1), hit->at(2));
-      } else {
-        cloud.transient_emplace_back(NAN, NAN, NAN);
-      }
-    }
-  } else {
-    // Set at least one element
-    cloud.emplace_back(NAN, NAN, NAN);
+    hits = raycaster_->raycast(this->get_rays());
+    assert(rows_ * cols_ == hits.size());
   }
 
-  PointCloud2 cloud_msg;
-  pcl::toROSMsg(cloud, cloud_msg);
-  cloud_msg.header = mesh_msg->header;
+  if (cloud_publisher_) {
+    auto cloud_msg = hits_to_cloud(hits);
+    cloud_msg.header = mesh_msg->header;
+    cloud_publisher_->publish(cloud_msg);
+  }
 
-  publisher_->publish(cloud_msg);
+  if (grid_publisher_) {
+    auto grid_msg = hits_to_grid(hits);
+    grid_msg.header = mesh_msg->header;
+    grid_publisher_->publish(grid_msg);
+  }
 }
 
 std::vector<Ray> ResampleMesh::get_rays() const
@@ -94,6 +90,57 @@ std::vector<Ray> ResampleMesh::get_rays() const
   assert(rows_ * cols_ == rays.size());
 
   return rays;
+}
+
+PointCloud2 ResampleMesh::hits_to_cloud(const std::vector<Hit> & hits) const
+{
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+
+  if (hits.empty()) {
+    // Set at least one element
+    cloud.emplace_back(NAN, NAN, NAN);
+  } else {
+    cloud.reserve(hits.size());
+    cloud.width = cols_;
+    cloud.height = rows_;
+    for (const auto & hit : hits) {
+      if (hit) {
+        cloud.transient_emplace_back(hit->at(0), hit->at(1), hit->at(2));
+      } else {
+        cloud.transient_emplace_back(NAN, NAN, NAN);
+      }
+    }
+  }
+
+  PointCloud2 cloud_msg;
+  pcl::toROSMsg(cloud, cloud_msg);
+
+  return cloud_msg;
+}
+
+Grid ResampleMesh::hits_to_grid(const std::vector<Hit> & hits) const
+{
+  Grid grid_msg;
+
+  grid_msg.width = cols_;
+  grid_msg.height = rows_;
+  grid_msg.pitch = params_.pitch;
+
+  if (hits.empty()) {
+    return grid_msg;
+  }
+
+  grid_msg.data.reserve(hits.size());
+  for (const auto & hit : hits) {
+    if (hit) {
+      // Push z value
+      grid_msg.data.emplace_back(hit->at(2));
+    } else {
+      grid_msg.data.emplace_back(NAN);
+    }
+  }
+
+  return grid_msg;
 }
 
 }  // namespace prox::mesh

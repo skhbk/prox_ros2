@@ -2,3 +2,5 @@ prox::mesh::resample_mesh:
   width: { type: double, default_value: 0.05 }
   height: { type: double, default_value: 0.05 }
   pitch: { type: double, default_value: 0.002 }
+  publish_cloud: { type: bool, default_value: false, read_only: true }
+  publish_grid: { type: bool, default_value: false, read_only: true }

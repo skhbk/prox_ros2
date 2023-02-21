@@ -107,6 +107,7 @@ def generate_launch_description():
                 plugin="prox::mesh::ResampleMesh",
                 namespace=output_namespace,
                 remappings=[("input/mesh_stamped", "triangulation/mesh_stamped")],
+                parameters=[{"publish_grid": True, "publish_cloud": False}],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
