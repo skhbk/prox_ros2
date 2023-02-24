@@ -1,0 +1,21 @@
+prox::attraction::virtual_wrench:
+  wrench_frame_id: { type: string, description: "Frame of the wrench." }
+  attraction_frame_ids:
+    {
+      type: string_array,
+      description: "Frames of the center of attraction.",
+      validation: { fixed_size<>: [2] },
+    }
+  stiffness: { type: double, default_value: 1000.0 }
+  force_scales:
+    {
+      type: double_array,
+      default_value: [1.0, 1.0, 1.0],
+      validation: { fixed_size<>: [3], element_bounds<>: [0.0, 1.0] },
+    }
+  torque_scales:
+    {
+      type: double_array,
+      default_value: [1.0, 1.0, 1.0],
+      validation: { fixed_size<>: [3], element_bounds<>: [0.0, 1.0] },
+    }
