@@ -17,8 +17,10 @@
   <depend>realtime_tools</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_lifecycle</depend>
+  <depend>tf2_eigen</depend>
 
   <depend>geometry_msgs</depend>
+  <depend>prox_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

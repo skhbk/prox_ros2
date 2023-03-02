@@ -26,6 +26,7 @@
 #include "realtime_tools/realtime_buffer.h"
 
 #include "geometry_msgs/msg/wrench_stamped.hpp"
+#include "prox_msgs/msg/wrench_controller_state.hpp"
 
 #include "wrench_controller_params.hpp"
 
@@ -33,6 +34,7 @@ namespace prox::control
 {
 
 using CmdType = geometry_msgs::msg::WrenchStamped;
+using ControllerStateMsg = prox_msgs::msg::WrenchControllerState;
 
 class WrenchController : public controller_interface::ControllerInterface
 {
@@ -48,6 +50,7 @@ class WrenchController : public controller_interface::ControllerInterface
 
   realtime_tools::RealtimeBuffer<CmdType::SharedPtr> rt_buffer_;
   rclcpp::Subscription<CmdType>::SharedPtr command_subscription_;
+  rclcpp::Publisher<ControllerStateMsg>::SharedPtr state_publisher_;
 
 public:
   controller_interface::CallbackReturn on_init() override;

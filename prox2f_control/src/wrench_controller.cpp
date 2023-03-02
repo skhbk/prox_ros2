@@ -16,6 +16,7 @@
 
 #include "control_toolbox/filters.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "tf2_eigen/tf2_eigen.hpp"
 
 namespace prox::control
 {
@@ -30,6 +31,18 @@ static Eigen::Block<Eigen::Vector<double, 6>> linear_part(Eigen::Vector<double, 
 static Eigen::Block<Eigen::Vector<double, 6>> angular_part(Eigen::Vector<double, 6> & twist)
 {
   return twist.block(3, 0, 3, 1);
+}
+
+static geometry_msgs::msg::Wrench toMsg(const Eigen::Vector<double, 6> & in)
+{
+  geometry_msgs::msg::Wrench msg;
+  msg.force.x = in[0];
+  msg.force.y = in[1];
+  msg.force.z = in[2];
+  msg.torque.x = in[3];
+  msg.torque.y = in[4];
+  msg.torque.z = in[5];
+  return msg;
 }
 
 CallbackReturn WrenchController::on_init()
@@ -76,6 +89,9 @@ CallbackReturn WrenchController::on_configure(const rclcpp_lifecycle::State & /*
     params_.command_topic, rclcpp::SensorDataQoS(),
     [this](const CmdType::SharedPtr msg) { rt_buffer_.writeFromNonRT(msg); });
 
+  state_publisher_ =
+    this->get_node()->create_publisher<ControllerStateMsg>("~/state", rclcpp::SystemDefaultsQoS());
+
   // Reset PID parameters
   for (size_t i = 0; i < 6; ++i) {
     pids_[i].initPid(
@@ -114,7 +130,7 @@ CallbackReturn WrenchController::on_deactivate(const rclcpp_lifecycle::State & /
 }
 
 controller_interface::return_type WrenchController::update(
-  const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
+  const rclcpp::Time & time, const rclcpp::Duration & period)
 {
   const auto wrench_msg = *rt_buffer_.readFromRT();
 
@@ -188,6 +204,17 @@ controller_interface::return_type WrenchController::update(
   // Write commands to interface
   for (size_t i = 0; i < params_.joints.size(); ++i) {
     command_interfaces_[i].set_value(joint_commands[i]);
+  }
+
+  if (state_publisher_->get_subscription_count() > 0) {
+    ControllerStateMsg state_msg;
+    state_msg.header.frame_id = control_frame_id_;
+    state_msg.header.stamp = time;
+    state_msg.wrench = control::toMsg(wrench_);
+    state_msg.twist = tf2::toMsg(twist);
+    state_msg.actual_twist = tf2::toMsg(actual_twist);
+    state_msg.base_twist = tf2::toMsg(base_twist);
+    state_publisher_->publish(state_msg);
   }
 
   return controller_interface::return_type::OK;
