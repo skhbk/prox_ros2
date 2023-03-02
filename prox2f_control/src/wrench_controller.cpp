@@ -14,24 +14,30 @@
 
 #include "prox2f_control/wrench_controller.hpp"
 
-#include <control_toolbox/filters.hpp>
-#include <control_toolbox/pid.hpp>
-#include <hardware_interface/types/hardware_interface_type_values.hpp>
+#include "control_toolbox/filters.hpp"
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
 
-#include <geometry_msgs/msg/wrench.hpp>
-
-namespace prox::wrench_controller
+namespace prox::control
 {
 
 using controller_interface::CallbackReturn;
 using controller_interface::InterfaceConfiguration;
 
+static Eigen::Block<Eigen::Vector<double, 6>> linear_part(Eigen::Vector<double, 6> & twist)
+{
+  return twist.block(0, 0, 3, 1);
+}
+static Eigen::Block<Eigen::Vector<double, 6>> angular_part(Eigen::Vector<double, 6> & twist)
+{
+  return twist.block(3, 0, 3, 1);
+}
+
 CallbackReturn WrenchController::on_init()
 {
-  param_listener_ = std::make_shared<ParamListener>(this->get_node());
+  param_listener_ = std::make_shared<wrench_controller::ParamListener>(this->get_node());
   params_ = param_listener_->get_params();
 
-  cartesian_commands_.resize(6, 0.);
+  wrench_.setZero();
   pids_.resize(6);
 
   return CallbackReturn::SUCCESS;
@@ -113,10 +119,10 @@ controller_interface::return_type WrenchController::update(
   const auto wrench_msg = *rt_buffer_.readFromRT();
 
   if (!wrench_msg) {
-    RCLCPP_INFO_STREAM_ONCE(this->get_node()->get_logger(), "No command message received yet.");
+    RCLCPP_INFO_ONCE(this->get_node()->get_logger(), "No command message received yet.");
     return controller_interface::return_type::OK;
   } else {
-    RCLCPP_INFO_STREAM_ONCE(this->get_node()->get_logger(), "Received command message.");
+    RCLCPP_INFO_ONCE(this->get_node()->get_logger(), "Received command message.");
   }
 
   // Update control frame id
@@ -131,23 +137,25 @@ controller_interface::return_type WrenchController::update(
   // Get wrench
   const auto & force = wrench_msg->wrench.force;
   const auto & torque = wrench_msg->wrench.torque;
-  std::vector<double> wrench{force.x, force.y, force.z, torque.x, torque.y, torque.z};
-  if (!std::all_of(wrench.begin(), wrench.end(), [](double x) { return !std::isnan(x); })) {
-    RCLCPP_ERROR(this->get_node()->get_logger(), "The wrench contains NaN.");
-    return controller_interface::return_type::ERROR;
+  Eigen::Vector<double, 6> wrench{force.x, force.y, force.z, torque.x, torque.y, torque.z};
+
+  // If any element is NaN, assume all values are 0
+  if (std::any_of(wrench.begin(), wrench.end(), [](double x) { return std::isnan(x); })) {
+    wrench.setZero();
   }
 
-  std::vector<double> actual_cartesian_commands(6, 0.);
+  Eigen::Vector<double, 6> twist;
   for (size_t i = 0; i < 6; ++i) {
-    // Compute Cartesian commands
-    const double cartesian_command = pids_[i].computeCommand(wrench[i], period.nanoseconds());
+    // Apply exponential filter
+    wrench_[i] = filters::exponentialSmoothing(wrench[i], wrench_[i], params_.filter_coefficient);
+    // Compute command
+    twist[i] = pids_[i].computeCommand(wrench_[i], period.nanoseconds());
+  }
 
-    // Apply exponential filter to command
-    cartesian_commands_[i] = filters::exponentialSmoothing(
-      cartesian_command, cartesian_commands_[i], params_.pid.filter_coefficient);
-
-    if (params_.enabled_axes[i]) {
-      actual_cartesian_commands[i] = cartesian_commands_[i];
+  auto actual_twist = twist;
+  for (size_t i = 0; i < 6; ++i) {
+    if (!params_.enabled_axes[i]) {
+      actual_twist[i] = 0;
     }
   }
 
@@ -159,16 +167,21 @@ controller_interface::return_type WrenchController::update(
     joint_states.push_back(interface.get_value());
   }
 
-  // Rotate cartesian commands
-  std::vector<double> rotated_cartesian_commands;
-  if (!this->rotate_wrench(joint_states, actual_cartesian_commands, rotated_cartesian_commands)) {
+  // Rotate twist
+  Eigen::Isometry3d transform;
+  if (!ik_->calculate_link_transform(joint_states, control_frame_id_, transform)) {
     return controller_interface::return_type::ERROR;
   }
+  Eigen::Vector<double, 6> base_twist;
+  linear_part(base_twist) = transform.rotation() * linear_part(actual_twist);
+  angular_part(base_twist) = transform.rotation() * angular_part(actual_twist);
 
-  // Convert Cartesian commands to joint commands
+  // Convert twist to joint commands
   std::vector<double> joint_commands(params_.joints.size(), 0.);
+  const std::vector<double> cartesian_commands(
+    base_twist.data(), base_twist.data() + base_twist.size());
   if (!ik_->convert_cartesian_deltas_to_joint_deltas(
-        joint_states, rotated_cartesian_commands, control_frame_id_, joint_commands)) {
+        joint_states, cartesian_commands, control_frame_id_, joint_commands)) {
     return controller_interface::return_type::ERROR;
   }
 
@@ -180,27 +193,8 @@ controller_interface::return_type WrenchController::update(
   return controller_interface::return_type::OK;
 }
 
-bool WrenchController::rotate_wrench(
-  const std::vector<double> & joint_states, const std::vector<double> & wrench,
-  std::vector<double> & rotated_wrench) const
-{
-  Eigen::Isometry3d transform;
-  if (!ik_->calculate_link_transform(joint_states, control_frame_id_, transform)) {
-    return false;
-  }
-  Eigen::Vector3d force{wrench[0], wrench[1], wrench[2]}, torque{wrench[3], wrench[4], wrench[5]};
-  const Eigen::Vector3d rotated_force = transform.rotation() * force;
-  const Eigen::Vector3d rotated_torque = transform.rotation() * torque;
-
-  rotated_wrench = {rotated_force[0],  rotated_force[1],  rotated_force[2],
-                    rotated_torque[0], rotated_torque[1], rotated_torque[2]};
-
-  return true;
-}
-
-}  // namespace prox::wrench_controller
+}  // namespace prox::control
 
 #include "pluginlib/class_list_macros.hpp"
 
-PLUGINLIB_EXPORT_CLASS(
-  prox::wrench_controller::WrenchController, controller_interface::ControllerInterface)
+PLUGINLIB_EXPORT_CLASS(prox::control::WrenchController, controller_interface::ControllerInterface)
