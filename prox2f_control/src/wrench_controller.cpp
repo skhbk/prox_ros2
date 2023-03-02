@@ -152,7 +152,7 @@ controller_interface::return_type WrenchController::update(
     twist[i] = pids_[i].computeCommand(wrench_[i], period.nanoseconds());
   }
 
-  auto actual_twist = twist;
+  auto actual_twist = this->limit_twist(twist);
   for (size_t i = 0; i < 6; ++i) {
     if (!params_.enabled_axes[i]) {
       actual_twist[i] = 0;
@@ -191,6 +191,37 @@ controller_interface::return_type WrenchController::update(
   }
 
   return controller_interface::return_type::OK;
+}
+
+Eigen::Vector<double, 6> WrenchController::limit_twist(Eigen::Vector<double, 6> twist) const
+{
+  const auto & logger = this->get_node()->get_logger();
+  auto & clock = *this->get_node()->get_clock();
+  const uint16_t log_duration = 500;
+
+  // Limit linear part
+  {
+    auto linear = linear_part(twist);
+    const auto speed = linear.norm();
+    const auto speed_ratio = speed / params_.safety.linear_speed_limit;
+    if (speed_ratio > 1) {
+      linear /= speed_ratio;
+      RCLCPP_WARN_THROTTLE(logger, clock, log_duration, "Linear speed limit exceeded.");
+    }
+  }
+
+  // Limit angular part
+  {
+    auto angular = angular_part(twist);
+    const auto speed = angular.norm();
+    const auto speed_ratio = speed / params_.safety.angular_speed_limit;
+    if (speed_ratio > 1) {
+      angular /= speed_ratio;
+      RCLCPP_WARN_THROTTLE(logger, clock, log_duration, "Angular speed limit exceeded.");
+    }
+  }
+
+  return twist;
 }
 
 }  // namespace prox::control

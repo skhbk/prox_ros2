@@ -68,3 +68,19 @@ prox::control::wrench_controller:
       description: "Specifies the coefficient for the commands' exponential filter.",
       validation: { bounds<>: [0.0, 1.0] },
     }
+
+  safety:
+    linear_speed_limit:
+      {
+        type: double,
+        default_value: 0.25,
+        description: "Limit for linear speed [m/s].",
+        validation: { bounds<>: [0.0, 0.25] },
+      }
+    angular_speed_limit:
+      {
+        type: double,
+        default_value: 6.28,
+        description: "Limit for angular speed [rad/s].",
+        validation: { bounds<>: [0.0, 6.28] },
+      }

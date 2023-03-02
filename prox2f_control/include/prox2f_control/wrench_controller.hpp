@@ -67,6 +67,9 @@ public:
 
   controller_interface::return_type update(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
+
+private:
+  Eigen::Vector<double, 6> limit_twist(Eigen::Vector<double, 6> twist) const;
 };
 
 }  // namespace prox::control
