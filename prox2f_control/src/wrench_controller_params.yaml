@@ -1,4 +1,4 @@
-prox::wrench_controller:
+prox::control::wrench_controller:
   joints:
     {
       type: string_array,
@@ -60,9 +60,27 @@ prox::wrench_controller:
         default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         validation: { fixed_size<>: 6, lower_element_bounds<>: 0.0 },
       }
-    filter_coefficient:
+
+  filter_coefficient:
+    {
+      type: double,
+      default_value: 1.0,
+      description: "Specifies the coefficient for the commands' exponential filter.",
+      validation: { bounds<>: [0.0, 1.0] },
+    }
+
+  safety:
+    linear_speed_limit:
       {
         type: double,
-        default_value: 0.3,
-        description: "Specifies the coefficient for the commands' exponential filter.",
+        default_value: 0.25,
+        description: "Limit for linear speed [m/s].",
+        validation: { bounds<>: [0.0, 0.25] },
+      }
+    angular_speed_limit:
+      {
+        type: double,
+        default_value: 6.28,
+        description: "Limit for angular speed [rad/s].",
+        validation: { bounds<>: [0.0, 6.28] },
       }

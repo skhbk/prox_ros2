@@ -15,30 +15,34 @@
 #ifndef PROX2F_CONTROL__WRENCH_CONTROLLER_HPP_
 #define PROX2F_CONTROL__WRENCH_CONTROLLER_HPP_
 
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "control_toolbox/pid.hpp"
+#include "controller_interface/controller_interface.hpp"
+#include "kinematics_interface/kinematics_interface.hpp"
+#include "pluginlib/class_loader.hpp"
+#include "realtime_tools/realtime_buffer.h"
+
+#include "geometry_msgs/msg/wrench_stamped.hpp"
+#include "prox_msgs/msg/wrench_controller_state.hpp"
+
 #include "wrench_controller_params.hpp"
 
-#include <control_toolbox/pid.hpp>
-#include <controller_interface/controller_interface.hpp>
-#include <kinematics_interface/kinematics_interface.hpp>
-#include <pluginlib/class_loader.hpp>
-#include <semantic_components/force_torque_sensor.hpp>
-
-#include <geometry_msgs/msg/wrench_stamped.hpp>
-
-#include <realtime_tools/realtime_buffer.h>
-
-namespace prox::wrench_controller
+namespace prox::control
 {
 
 using CmdType = geometry_msgs::msg::WrenchStamped;
+using ControllerStateMsg = prox_msgs::msg::WrenchControllerState;
 
 class WrenchController : public controller_interface::ControllerInterface
 {
-  std::shared_ptr<ParamListener> param_listener_;
-  Params params_;
+  std::shared_ptr<wrench_controller::ParamListener> param_listener_;
+  wrench_controller::Params params_;
 
   std::string control_frame_id_;
-  std::vector<double> cartesian_commands_;
+  Eigen::Vector<double, 6> wrench_;
 
   std::vector<control_toolbox::Pid> pids_;
   std::shared_ptr<pluginlib::ClassLoader<kinematics_interface::KinematicsInterface>> ik_loader_;
@@ -46,6 +50,7 @@ class WrenchController : public controller_interface::ControllerInterface
 
   realtime_tools::RealtimeBuffer<CmdType::SharedPtr> rt_buffer_;
   rclcpp::Subscription<CmdType>::SharedPtr command_subscription_;
+  rclcpp::Publisher<ControllerStateMsg>::SharedPtr state_publisher_;
 
 public:
   controller_interface::CallbackReturn on_init() override;
@@ -67,11 +72,9 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  bool rotate_wrench(
-    const std::vector<double> & joint_states, const std::vector<double> & wrench,
-    std::vector<double> & rotated_wrench) const;
+  Eigen::Vector<double, 6> limit_twist(Eigen::Vector<double, 6> twist) const;
 };
 
-}  // namespace prox::wrench_controller
+}  // namespace prox::control
 
 #endif  // PROX2F_CONTROL__WRENCH_CONTROLLER_HPP_

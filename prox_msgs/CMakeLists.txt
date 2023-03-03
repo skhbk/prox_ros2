@@ -13,9 +13,11 @@ find_package(shape_msgs REQUIRED)
 rosidl_generate_interfaces(
   ${PROJECT_NAME}
   "msg/MeshStamped.msg"
+  "msg/WrenchControllerState.msg"
   DEPENDENCIES
   std_msgs
   shape_msgs
+  geometry_msgs
   ADD_LINTER_TESTS
 )
 
