@@ -33,7 +33,7 @@ class ImageSmoothing : public rclcpp::Node
   rclcpp::Publisher<Image>::SharedPtr publisher_;
 
 public:
-  explicit ImageSmoothing(const rclcpp::NodeOptions & options) : Node("ema", options)
+  explicit ImageSmoothing(const rclcpp::NodeOptions & options) : Node("image_smoothing", options)
   {
     this->declare_parameter<double>("weight", .3);
 
