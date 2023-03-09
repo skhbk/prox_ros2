@@ -61,7 +61,7 @@ private:
     }
 
     cv::Mat1f input_img = cv_bridge::toCvShare(input_msg)->image;
-    if (img_.empty()) {
+    if (img_.size() != input_img.size()) {
       // Fill with NaN
       img_ = cv::Mat1f(input_img.size(), NAN);
     }
