@@ -14,13 +14,25 @@ ament_auto_find_build_dependencies()
 
 find_package(PCL REQUIRED COMPONENTS common filters)
 
+generate_parameter_library(
+  image_smoothing_params src/image_smoothing_params.yaml
+)
+generate_parameter_library(
+  cloud_processor_params src/cloud_processor_params.yaml
+)
+
 ament_auto_add_library(
   ${PROJECT_NAME}
   SHARED
   src/image_smoothing_node.cpp
   src/cloud_processor_node.cpp
 )
-target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES})
+target_link_libraries(
+  ${PROJECT_NAME}
+  ${PCL_LIBRARIES}
+  image_smoothing_params
+  cloud_processor_params
+)
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}

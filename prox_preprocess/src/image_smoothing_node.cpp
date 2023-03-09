@@ -20,6 +20,8 @@
 
 #include "sensor_msgs/msg/image.hpp"
 
+#include "image_smoothing_params.hpp"
+
 namespace prox::preprocess
 {
 using sensor_msgs::msg::Image;
@@ -27,15 +29,20 @@ using std::placeholders::_1;
 
 class ImageSmoothing : public rclcpp::Node
 {
-  cv::Mat1f img_;
+  std::shared_ptr<image_smoothing::ParamListener> param_listener_;
+  image_smoothing::Params params_;
 
   rclcpp::Subscription<Image>::SharedPtr subscription_;
   rclcpp::Publisher<Image>::SharedPtr publisher_;
 
+  cv::Mat1f img_;
+
 public:
   explicit ImageSmoothing(const rclcpp::NodeOptions & options) : Node("image_smoothing", options)
   {
-    this->declare_parameter<double>("weight", .3);
+    param_listener_ =
+      std::make_shared<image_smoothing::ParamListener>(this->get_node_parameters_interface());
+    params_ = param_listener_->get_params();
 
     subscription_ = create_subscription<Image>(
       "input/image", rclcpp::SensorDataQoS(), std::bind(&ImageSmoothing::topic_callback, this, _1));
@@ -45,6 +52,10 @@ public:
 private:
   void topic_callback(const Image::SharedPtr input_msg)
   {
+    if (param_listener_->is_old(params_)) {
+      params_ = param_listener_->get_params();
+    }
+
     if (publisher_->get_subscription_count() == 0) {
       return;
     }
@@ -58,9 +69,6 @@ private:
 
     cv::medianBlur(input_img, input_img, 3);
 
-    double weight;
-    this->get_parameter("weight", weight);
-
     img_.forEach([&](float & pixel, const int * position) {
       const auto & input_pixel = input_img.at<float>(position[0], position[1]);
 
@@ -70,7 +78,7 @@ private:
         pixel = input_pixel;
       } else {
         // EMA calculation
-        pixel = input_pixel * weight + pixel * (1 - weight);
+        pixel = input_pixel * params_.filter_coefficient + pixel * (1 - params_.filter_coefficient);
       }
     });
 
