@@ -72,13 +72,17 @@ private:
     img_.forEach([&](float & pixel, const int * position) {
       const auto & input_pixel = input_img.at<float>(position[0], position[1]);
 
-      if (std::isnan(input_pixel) || input_pixel < .02) {
+      if (std::isnan(input_pixel)) {
         pixel = NAN;
       } else if (std::isnan(pixel)) {
         pixel = input_pixel;
       } else {
         // EMA calculation
         pixel = input_pixel * params_.filter_coefficient + pixel * (1 - params_.filter_coefficient);
+      }
+
+      if (pixel < params_.lower_clip) {
+        pixel = params_.lower_clip;
       }
     });
 

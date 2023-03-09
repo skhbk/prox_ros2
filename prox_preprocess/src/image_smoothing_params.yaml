@@ -1,3 +1,4 @@
 prox::preprocess::image_smoothing:
   filter_coefficient:
     { type: double, default_value: 1.0, validation: { bounds<>: [0.0, 1.0] } }
+  lower_clip: { type: double, default_value: 0.0 }
