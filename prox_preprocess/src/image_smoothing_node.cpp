@@ -12,14 +12,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include <opencv2/core.hpp>
-#include <rclcpp/rclcpp.hpp>
-
-#include <sensor_msgs/msg/image.hpp>
-
-#include <cv_bridge/cv_bridge.h>
-
 #include <vector>
+
+#include "cv_bridge/cv_bridge.h"
+#include "opencv2/core.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+#include "sensor_msgs/msg/image.hpp"
 
 namespace prox
 {
