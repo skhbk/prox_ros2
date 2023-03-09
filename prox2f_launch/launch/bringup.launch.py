@@ -19,7 +19,7 @@ from launch.actions import (
     ExecuteProcess,
     RegisterEventHandler,
 )
-from launch.conditions import UnlessCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnShutdown, OnProcessExit
 from launch.events import Shutdown
 from launch.substitutions import (
@@ -72,14 +72,22 @@ def generate_launch_description():
         [FindPackageShare("prox2f_launch"), "config", "prox2f_controllers.yaml"]
     )
 
+    control_node = Node(
+        package="controller_manager",
+        executable="ros2_control_node",
+        parameters=[robot_description, initial_controllers],
+        output="screen",
+        emulate_tty=True,
+        condition=IfCondition(LaunchConfiguration("use_fake_hardware")),
+    )
+
     ur_control_node = Node(
         package="ur_robot_driver",
         executable="ur_ros2_control_node",
-        parameters=[
-            robot_description,
-            initial_controllers,
-        ],
+        parameters=[robot_description, initial_controllers],
         output="screen",
+        emulate_tty=True,
+        condition=UnlessCondition(LaunchConfiguration("use_fake_hardware")),
     )
 
     dashboard_client_node = Node(
@@ -173,6 +181,7 @@ def generate_launch_description():
     )
 
     actions = [
+        control_node,
         ur_control_node,
         dashboard_client_node,
         controller_stopper_node,
