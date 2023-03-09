@@ -44,7 +44,7 @@ def generate_launch_description():
         composable_nodes.append(
             ComposableNode(
                 package="prox_preprocess",
-                plugin="prox::ImageSmoothing",
+                plugin="prox::preprocess::ImageSmoothing",
                 namespace=output_namespace,
                 remappings=[("input/image", [input_namespace, "/image"])],
                 parameters=[{"weight": 0.6}],
@@ -69,7 +69,7 @@ def generate_launch_description():
         composable_nodes.append(
             ComposableNode(
                 package="prox_preprocess",
-                plugin="prox::CloudProcessor",
+                plugin="prox::preprocess::CloudProcessor",
                 namespace=output_namespace,
                 remappings=[
                     ("input/points", "raw_points"),

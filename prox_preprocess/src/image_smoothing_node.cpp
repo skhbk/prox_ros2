@@ -20,7 +20,7 @@
 
 #include "sensor_msgs/msg/image.hpp"
 
-namespace prox
+namespace prox::preprocess
 {
 using sensor_msgs::msg::Image;
 using std::placeholders::_1;
@@ -83,7 +83,7 @@ private:
     publisher_->publish(output_msg);
   }
 };
-}  // namespace prox
+}  // namespace prox::preprocess
 
 #include "rclcpp_components/register_node_macro.hpp"
-RCLCPP_COMPONENTS_REGISTER_NODE(prox::ImageSmoothing)
+RCLCPP_COMPONENTS_REGISTER_NODE(prox::preprocess::ImageSmoothing)

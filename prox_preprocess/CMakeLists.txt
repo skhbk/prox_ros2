@@ -25,8 +25,8 @@ target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES})
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
   PLUGIN
-  "prox::ImageSmoothing"
-  "prox::CloudProcessor"
+  "prox::preprocess::ImageSmoothing"
+  "prox::preprocess::CloudProcessor"
 )
 
 if(BUILD_TESTING)

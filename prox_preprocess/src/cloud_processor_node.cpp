@@ -24,7 +24,7 @@
 
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
-namespace prox
+namespace prox::preprocess
 {
 using sensor_msgs::msg::PointCloud2;
 using std::placeholders::_1;
@@ -109,7 +109,7 @@ public:
     publisher_->publish(output_msg);
   }
 };
-}  // namespace prox
+}  // namespace prox::preprocess
 
 #include "rclcpp_components/register_node_macro.hpp"
-RCLCPP_COMPONENTS_REGISTER_NODE(prox::CloudProcessor)
+RCLCPP_COMPONENTS_REGISTER_NODE(prox::preprocess::CloudProcessor)
