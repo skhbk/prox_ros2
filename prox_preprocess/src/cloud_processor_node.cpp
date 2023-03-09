@@ -12,37 +12,39 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include <rclcpp/rclcpp.hpp>
-
-#include <sensor_msgs/msg/point_cloud2.hpp>
-
-#include <pcl/filters/filter.h>
-#include <pcl/filters/passthrough.h>
-#include <pcl/filters/radius_outlier_removal.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl_conversions/pcl_conversions.h>
-
 #include <string>
 
-namespace prox
+#include "pcl/filters/filter.h"
+#include "pcl/filters/passthrough.h"
+#include "pcl/filters/radius_outlier_removal.h"
+#include "pcl/point_cloud.h"
+#include "pcl/point_types.h"
+#include "pcl_conversions/pcl_conversions.h"
+#include "rclcpp/rclcpp.hpp"
+
+#include "sensor_msgs/msg/point_cloud2.hpp"
+
+#include "cloud_processor_params.hpp"
+
+namespace prox::preprocess
 {
 using sensor_msgs::msg::PointCloud2;
 using std::placeholders::_1;
 
 class CloudProcessor : public rclcpp::Node
 {
+  std::shared_ptr<cloud_processor::ParamListener> param_listener_;
+  cloud_processor::Params params_;
+
   rclcpp::Subscription<PointCloud2>::SharedPtr subscription_;
   rclcpp::Publisher<PointCloud2>::SharedPtr publisher_;
 
 public:
   explicit CloudProcessor(const rclcpp::NodeOptions & options) : Node("cloud_processor", options)
   {
-    this->declare_parameter<std::string>("pass_through/field_name", "z");
-    this->declare_parameter<double>("pass_through/limit_min", 0.);
-    this->declare_parameter<double>("pass_through/limit_max", 1.);
-    this->declare_parameter<double>("outlier/radius", .01);
-    this->declare_parameter<int64_t>("outlier/min_neighbors", 2);
+    param_listener_ =
+      std::make_shared<cloud_processor::ParamListener>(this->get_node_parameters_interface());
+    params_ = param_listener_->get_params();
 
     subscription_ = this->create_subscription<PointCloud2>(
       "input/points", rclcpp::SensorDataQoS(),
@@ -52,6 +54,10 @@ public:
 
   void topic_callback(const PointCloud2::ConstSharedPtr input_msg)
   {
+    if (param_listener_->is_old(params_)) {
+      params_ = param_listener_->get_params();
+    }
+
     if (publisher_->get_subscription_count() == 0) {
       return;
     }
@@ -67,16 +73,10 @@ public:
 
     // Pass through
     {
-      std::string field_name;
-      double limit_min, limit_max;
-      this->get_parameter("pass_through/field_name", field_name);
-      this->get_parameter("pass_through/limit_min", limit_min);
-      this->get_parameter("pass_through/limit_max", limit_max);
-
       pcl::PassThrough<pcl::PointXYZ> filter(true);
       filter.setInputCloud(cloud_ptr);
-      filter.setFilterFieldName(field_name);
-      filter.setFilterLimits(limit_min, limit_max);
+      filter.setFilterFieldName(params_.pass_through.field_name);
+      filter.setFilterLimits(params_.pass_through.bounds[0], params_.pass_through.bounds[1]);
       filter.setKeepOrganized(true);
       decltype(cloud) cloud_out;
       filter.filter(cloud_out);
@@ -89,16 +89,11 @@ public:
 
     // Remove outliers
     {
-      double radius;
-      int64_t min_neighbors;
-      this->get_parameter("outlier/radius", radius);
-      this->get_parameter("outlier/min_neighbors", min_neighbors);
-
       pcl::RadiusOutlierRemoval<pcl::PointXYZ> filter(true);
       filter.setInputCloud(cloud_ptr);
       filter.setIndices(pcl::make_shared<decltype(indices)>(indices));
-      filter.setRadiusSearch(radius);
-      filter.setMinNeighborsInRadius(min_neighbors);
+      filter.setRadiusSearch(params_.outlier_removal.radius);
+      filter.setMinNeighborsInRadius(params_.outlier_removal.min_neighbors);
       filter.setKeepOrganized(true);
       decltype(cloud) cloud_out;
       filter.filter(cloud_out);
@@ -110,7 +105,7 @@ public:
     publisher_->publish(output_msg);
   }
 };
-}  // namespace prox
+}  // namespace prox::preprocess
 
 #include "rclcpp_components/register_node_macro.hpp"
-RCLCPP_COMPONENTS_REGISTER_NODE(prox::CloudProcessor)
+RCLCPP_COMPONENTS_REGISTER_NODE(prox::preprocess::CloudProcessor)

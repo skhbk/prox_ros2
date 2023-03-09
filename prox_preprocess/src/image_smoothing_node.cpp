@@ -12,31 +12,37 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include <opencv2/core.hpp>
-#include <rclcpp/rclcpp.hpp>
-
-#include <sensor_msgs/msg/image.hpp>
-
-#include <cv_bridge/cv_bridge.h>
-
 #include <vector>
 
-namespace prox
+#include "cv_bridge/cv_bridge.h"
+#include "opencv2/core.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+#include "sensor_msgs/msg/image.hpp"
+
+#include "image_smoothing_params.hpp"
+
+namespace prox::preprocess
 {
 using sensor_msgs::msg::Image;
 using std::placeholders::_1;
 
 class ImageSmoothing : public rclcpp::Node
 {
-  cv::Mat1f img_;
+  std::shared_ptr<image_smoothing::ParamListener> param_listener_;
+  image_smoothing::Params params_;
 
   rclcpp::Subscription<Image>::SharedPtr subscription_;
   rclcpp::Publisher<Image>::SharedPtr publisher_;
 
+  cv::Mat1f img_;
+
 public:
-  explicit ImageSmoothing(const rclcpp::NodeOptions & options) : Node("ema", options)
+  explicit ImageSmoothing(const rclcpp::NodeOptions & options) : Node("image_smoothing", options)
   {
-    this->declare_parameter<double>("weight", .3);
+    param_listener_ =
+      std::make_shared<image_smoothing::ParamListener>(this->get_node_parameters_interface());
+    params_ = param_listener_->get_params();
 
     subscription_ = create_subscription<Image>(
       "input/image", rclcpp::SensorDataQoS(), std::bind(&ImageSmoothing::topic_callback, this, _1));
@@ -46,12 +52,16 @@ public:
 private:
   void topic_callback(const Image::SharedPtr input_msg)
   {
+    if (param_listener_->is_old(params_)) {
+      params_ = param_listener_->get_params();
+    }
+
     if (publisher_->get_subscription_count() == 0) {
       return;
     }
 
     cv::Mat1f input_img = cv_bridge::toCvShare(input_msg)->image;
-    if (img_.empty()) {
+    if (img_.size() != input_img.size()) {
       // Fill with NaN
       img_ = cv::Mat1f(input_img.size(), NAN);
     }
@@ -59,19 +69,20 @@ private:
 
     cv::medianBlur(input_img, input_img, 3);
 
-    double weight;
-    this->get_parameter("weight", weight);
-
     img_.forEach([&](float & pixel, const int * position) {
       const auto & input_pixel = input_img.at<float>(position[0], position[1]);
 
-      if (std::isnan(input_pixel) || input_pixel < .02) {
+      if (std::isnan(input_pixel)) {
         pixel = NAN;
       } else if (std::isnan(pixel)) {
         pixel = input_pixel;
       } else {
         // EMA calculation
-        pixel = input_pixel * weight + pixel * (1 - weight);
+        pixel = input_pixel * params_.filter_coefficient + pixel * (1 - params_.filter_coefficient);
+      }
+
+      if (pixel < params_.lower_clip) {
+        pixel = params_.lower_clip;
       }
     });
 
@@ -84,7 +95,7 @@ private:
     publisher_->publish(output_msg);
   }
 };
-}  // namespace prox
+}  // namespace prox::preprocess
 
 #include "rclcpp_components/register_node_macro.hpp"
-RCLCPP_COMPONENTS_REGISTER_NODE(prox::ImageSmoothing)
+RCLCPP_COMPONENTS_REGISTER_NODE(prox::preprocess::ImageSmoothing)

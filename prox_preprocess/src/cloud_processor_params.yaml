@@ -1,0 +1,14 @@
+prox::preprocess::cloud_processor:
+  pass_through:
+    field_name: { type: string, default_value: "z" }
+    bounds:
+      {
+        type: double_array,
+        default_value: [0.0, 1.0],
+        validation: { fixed_size<>: [2] },
+      }
+
+  outlier_removal:
+    radius: { type: double, default_value: 0.02 }
+    min_neighbors:
+      { type: int, default_value: 3, validation: { lower_bounds<>: [0] } }
