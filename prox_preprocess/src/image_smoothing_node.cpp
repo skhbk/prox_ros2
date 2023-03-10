@@ -46,7 +46,7 @@ public:
 
     subscription_ = create_subscription<Image>(
       "input/image", rclcpp::SensorDataQoS(), std::bind(&ImageSmoothing::topic_callback, this, _1));
-    publisher_ = create_publisher<Image>("image", rclcpp::SensorDataQoS());
+    publisher_ = create_publisher<Image>("~/image", rclcpp::SensorDataQoS());
   }
 
 private:

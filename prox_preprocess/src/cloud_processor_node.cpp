@@ -49,7 +49,7 @@ public:
     subscription_ = this->create_subscription<PointCloud2>(
       "input/points", rclcpp::SensorDataQoS(),
       std::bind(&CloudProcessor::topic_callback, this, _1));
-    publisher_ = this->create_publisher<PointCloud2>("points", rclcpp::SensorDataQoS());
+    publisher_ = this->create_publisher<PointCloud2>("~/points", rclcpp::SensorDataQoS());
   }
 
   void topic_callback(const PointCloud2::ConstSharedPtr input_msg)

@@ -58,7 +58,7 @@ def generate_launch_description():
                 plugin="depth_image_proc::PointCloudXyzNode",
                 namespace=output_namespace,
                 remappings=[
-                    ("image_rect", "image"),
+                    ("image_rect", "image_smoothing/image"),
                     ("camera_info", [input_namespace, "/camera_info"]),
                     ("points", "raw_points"),
                 ],
@@ -86,7 +86,7 @@ def generate_launch_description():
                 package="prox_mesh",
                 plugin="prox::mesh::Triangulation",
                 namespace=output_namespace,
-                remappings=[("input/points", "points")],
+                remappings=[("input/points", "cloud_processor/points")],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
@@ -96,7 +96,7 @@ def generate_launch_description():
                 package="prox_mesh",
                 plugin="prox::mesh::MeshToMarker",
                 namespace=output_namespace,
-                remappings=[("input/mesh_stamped", "mesh_stamped")],
+                remappings=[("input/mesh_stamped", "triangulation/mesh_stamped")],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
@@ -106,7 +106,7 @@ def generate_launch_description():
                 package="prox_mesh",
                 plugin="prox::mesh::ResampleMesh",
                 namespace=output_namespace,
-                remappings=[("input/mesh_stamped", "mesh_stamped")],
+                remappings=[("input/mesh_stamped", "triangulation/mesh_stamped")],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )

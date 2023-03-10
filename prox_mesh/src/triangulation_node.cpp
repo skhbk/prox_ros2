@@ -30,7 +30,7 @@ Triangulation::Triangulation(const rclcpp::NodeOptions & options) : Node("triang
 {
   subscription_ = this->create_subscription<PointCloud2>(
     "input/points", rclcpp::SensorDataQoS(), std::bind(&Triangulation::topic_callback, this, _1));
-  publisher_ = this->create_publisher<MeshStamped>("mesh_stamped", rclcpp::SensorDataQoS());
+  publisher_ = this->create_publisher<MeshStamped>("~/mesh_stamped", rclcpp::SensorDataQoS());
 }
 
 void Triangulation::topic_callback(const PointCloud2::ConstSharedPtr & cloud_msg)

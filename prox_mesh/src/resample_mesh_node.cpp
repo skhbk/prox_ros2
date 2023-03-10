@@ -39,7 +39,7 @@ ResampleMesh::ResampleMesh(const rclcpp::NodeOptions & options)
   subscription_ = this->create_subscription<MeshStamped>(
     "input/mesh_stamped", rclcpp::SensorDataQoS(),
     std::bind(&ResampleMesh::topic_callback, this, _1));
-  publisher_ = this->create_publisher<PointCloud2>("resampled_points", rclcpp::SensorDataQoS());
+  publisher_ = this->create_publisher<PointCloud2>("~/points", rclcpp::SensorDataQoS());
 }
 
 void ResampleMesh::topic_callback(const MeshStamped::ConstSharedPtr & mesh_msg)
