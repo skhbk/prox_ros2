@@ -26,7 +26,7 @@ MeshToMarker::MeshToMarker(const rclcpp::NodeOptions & options) : Node("mesh_to_
   subscription_ = this->create_subscription<MeshStamped>(
     "input/mesh_stamped", rclcpp::SensorDataQoS(),
     std::bind(&MeshToMarker::topic_callback, this, _1));
-  publisher_ = this->create_publisher<Marker>("mesh_marker", rclcpp::SensorDataQoS());
+  publisher_ = this->create_publisher<Marker>("~/marker", rclcpp::SensorDataQoS());
 }
 
 void MeshToMarker::topic_callback(const MeshStamped::ConstSharedPtr & mesh_msg)
