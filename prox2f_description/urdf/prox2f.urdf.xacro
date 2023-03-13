@@ -97,6 +97,20 @@
     <origin xyz="0 0 0.155" rpy="0 0 0" />
   </joint>
 
+  <!-- Frames for attraction center -->
+  <link name="left_attraction" />
+  <link name="right_attraction" />
+  <joint name="left_attraction_joint" type="fixed">
+    <parent link="tcp" />
+    <child link="left_attraction" />
+    <origin xyz="-0.04 0 0" rpy="0 0 0" />
+  </joint>
+  <joint name="right_attraction_joint" type="fixed">
+    <parent link="tcp" />
+    <child link="right_attraction" />
+    <origin xyz="0.04 0 0" rpy="0 0 0" />
+  </joint>
+
   <!-- Gazebo -->
   <xacro:if value="$(arg sim_gazebo)">
     <!-- ros2_control -->
