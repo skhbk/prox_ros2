@@ -9,11 +9,11 @@ find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
 generate_parameter_library(
-  wrench_controller_params src/wrench_controller_params.yaml
+  twist_controller_params src/twist_controller_params.yaml
 )
 
-ament_auto_add_library(${PROJECT_NAME} SHARED src/wrench_controller.cpp)
-target_link_libraries(${PROJECT_NAME} wrench_controller_params)
+ament_auto_add_library(${PROJECT_NAME} SHARED src/twist_controller.cpp)
+target_link_libraries(${PROJECT_NAME} twist_controller_params)
 
 pluginlib_export_plugin_description_file(
   controller_interface controller_plugins.xml

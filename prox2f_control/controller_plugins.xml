@@ -1,9 +1,9 @@
 <library path="prox2f_control">
-    <class name="prox2f_control/WrenchController"
-        type="prox::control::WrenchController"
+    <class name="prox2f_control/TwistController"
+        type="prox::control::TwistController"
         base_class_type="controller_interface::ControllerInterface">
         <description>
-            Wrench based controller.
+            Twist command controller.
         </description>
     </class>
 </library>

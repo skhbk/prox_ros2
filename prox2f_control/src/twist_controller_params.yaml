@@ -1,12 +1,10 @@
-prox::control::wrench_controller:
+prox::control::twist_controller:
   joints:
     {
       type: string_array,
       description: "Specifies which joints will be used by the controller.",
       read_only: true,
     }
-
-  command_topic: { type: string, default_value: "~/commands" }
 
   enabled_axes: { type: bool_array, validation: { fixed_size<>: 6 } }
 
@@ -39,7 +37,7 @@ prox::control::wrench_controller:
     p:
       {
         type: double_array,
-        default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        default_value: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
         validation: { fixed_size<>: 6 },
       }
     i:

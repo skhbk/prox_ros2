@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "prox2f_control/wrench_controller.hpp"
+#include "prox2f_control/twist_controller.hpp"
 
 #include "control_toolbox/filters.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -33,30 +33,18 @@ static Eigen::Block<Eigen::Vector<double, 6>> angular_part(Eigen::Vector<double,
   return twist.block(3, 0, 3, 1);
 }
 
-static geometry_msgs::msg::Wrench toMsg(const Eigen::Vector<double, 6> & in)
+CallbackReturn TwistController::on_init()
 {
-  geometry_msgs::msg::Wrench msg;
-  msg.force.x = in[0];
-  msg.force.y = in[1];
-  msg.force.z = in[2];
-  msg.torque.x = in[3];
-  msg.torque.y = in[4];
-  msg.torque.z = in[5];
-  return msg;
-}
-
-CallbackReturn WrenchController::on_init()
-{
-  param_listener_ = std::make_shared<wrench_controller::ParamListener>(this->get_node());
+  param_listener_ = std::make_shared<twist_controller::ParamListener>(this->get_node());
   params_ = param_listener_->get_params();
 
-  wrench_.setZero();
+  twist_.setZero();
   pids_.resize(6);
 
   return CallbackReturn::SUCCESS;
 }
 
-InterfaceConfiguration WrenchController::command_interface_configuration() const
+InterfaceConfiguration TwistController::command_interface_configuration() const
 {
   std::vector<std::string> command_interfaces_config_names;
   for (const auto & joint : params_.joints) {
@@ -69,7 +57,7 @@ InterfaceConfiguration WrenchController::command_interface_configuration() const
     command_interfaces_config_names};
 }
 
-InterfaceConfiguration WrenchController::state_interface_configuration() const
+InterfaceConfiguration TwistController::state_interface_configuration() const
 {
   std::vector<std::string> state_interfaces_config_names;
   for (const auto & joint : params_.joints) {
@@ -81,12 +69,12 @@ InterfaceConfiguration WrenchController::state_interface_configuration() const
     controller_interface::interface_configuration_type::INDIVIDUAL, state_interfaces_config_names};
 }
 
-CallbackReturn WrenchController::on_configure(const rclcpp_lifecycle::State & /*previous_state*/)
+CallbackReturn TwistController::on_configure(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   params_ = param_listener_->get_params();
 
   command_subscription_ = this->get_node()->create_subscription<CmdType>(
-    params_.command_topic, rclcpp::SensorDataQoS(),
+    "~/commands", rclcpp::SensorDataQoS(),
     [this](const CmdType::SharedPtr msg) { rt_buffer_.writeFromNonRT(msg); });
 
   state_publisher_ =
@@ -112,14 +100,14 @@ CallbackReturn WrenchController::on_configure(const rclcpp_lifecycle::State & /*
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn WrenchController::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
+CallbackReturn TwistController::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   rt_buffer_.reset();
 
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn WrenchController::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
+CallbackReturn TwistController::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   // Stop all joints
   for (auto & interface : command_interfaces_) {
@@ -129,12 +117,12 @@ CallbackReturn WrenchController::on_deactivate(const rclcpp_lifecycle::State & /
   return CallbackReturn::SUCCESS;
 }
 
-controller_interface::return_type WrenchController::update(
+controller_interface::return_type TwistController::update(
   const rclcpp::Time & time, const rclcpp::Duration & period)
 {
-  const auto wrench_msg = *rt_buffer_.readFromRT();
+  const auto twist_msg = *rt_buffer_.readFromRT();
 
-  if (!wrench_msg) {
+  if (!twist_msg) {
     RCLCPP_INFO_ONCE(this->get_node()->get_logger(), "No command message received yet.");
     return controller_interface::return_type::OK;
   } else {
@@ -142,33 +130,31 @@ controller_interface::return_type WrenchController::update(
   }
 
   // Update control frame id
-  const auto & new_frame_id = wrench_msg->header.frame_id;
+  const auto & new_frame_id = twist_msg->header.frame_id;
   if (control_frame_id_ != new_frame_id) {
     control_frame_id_ = new_frame_id;
     RCLCPP_INFO_STREAM(
       this->get_node()->get_logger(),
-      "Control-target frame-id is updated: [" << control_frame_id_ << "]");
-  }
-
-  // Get wrench
-  const auto & force = wrench_msg->wrench.force;
-  const auto & torque = wrench_msg->wrench.torque;
-  Eigen::Vector<double, 6> wrench{force.x, force.y, force.z, torque.x, torque.y, torque.z};
-
-  // If any element is NaN, assume all values are 0
-  if (std::any_of(wrench.begin(), wrench.end(), [](double x) { return std::isnan(x); })) {
-    wrench.setZero();
+      "Control-target frame is updated: [" << control_frame_id_ << "]");
   }
 
   Eigen::Vector<double, 6> twist;
-  for (size_t i = 0; i < 6; ++i) {
-    // Apply exponential filter
-    wrench_[i] = filters::exponentialSmoothing(wrench[i], wrench_[i], params_.filter_coefficient);
-    // Compute command
-    twist[i] = pids_[i].computeCommand(wrench_[i], period.nanoseconds());
+  tf2::fromMsg(twist_msg->twist, twist);
+
+  // If any element is infinite, assume all values are 0
+  if (std::any_of(twist.begin(), twist.end(), [](double x) { return !std::isfinite(x); })) {
+    twist.setZero();
   }
 
-  auto actual_twist = this->limit_twist(twist);
+  Eigen::Vector<double, 6> actual_twist;
+  for (size_t i = 0; i < 6; ++i) {
+    // Apply exponential filter
+    twist_[i] = filters::exponentialSmoothing(twist[i], twist_[i], params_.filter_coefficient);
+    // Apply PID
+    actual_twist[i] = pids_[i].computeCommand(twist_[i], period.nanoseconds());
+  }
+
+  actual_twist = this->limit_twist(actual_twist);
   for (size_t i = 0; i < 6; ++i) {
     if (!params_.enabled_axes[i]) {
       actual_twist[i] = 0;
@@ -210,17 +196,17 @@ controller_interface::return_type WrenchController::update(
     ControllerStateMsg state_msg;
     state_msg.header.frame_id = control_frame_id_;
     state_msg.header.stamp = time;
-    state_msg.wrench = control::toMsg(wrench_);
-    state_msg.twist = tf2::toMsg(twist);
+    state_msg.input_twist = tf2::toMsg(twist);
     state_msg.actual_twist = tf2::toMsg(actual_twist);
     state_msg.base_twist = tf2::toMsg(base_twist);
+    state_msg.joint_commands = joint_commands;
     state_publisher_->publish(state_msg);
   }
 
   return controller_interface::return_type::OK;
 }
 
-Eigen::Vector<double, 6> WrenchController::limit_twist(Eigen::Vector<double, 6> twist) const
+Eigen::Vector<double, 6> TwistController::limit_twist(Eigen::Vector<double, 6> twist) const
 {
   const auto & logger = this->get_node()->get_logger();
   auto & clock = *this->get_node()->get_clock();
@@ -255,4 +241,4 @@ Eigen::Vector<double, 6> WrenchController::limit_twist(Eigen::Vector<double, 6> 
 
 #include "pluginlib/class_list_macros.hpp"
 
-PLUGINLIB_EXPORT_CLASS(prox::control::WrenchController, controller_interface::ControllerInterface)
+PLUGINLIB_EXPORT_CLASS(prox::control::TwistController, controller_interface::ControllerInterface)
