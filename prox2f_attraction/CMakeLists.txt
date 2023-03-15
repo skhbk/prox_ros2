@@ -9,20 +9,26 @@ find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
 generate_parameter_library(virtual_wrench_params src/virtual_wrench_params.yaml)
+generate_parameter_library(
+  wrench_to_twist_params src/wrench_to_twist_params.yaml
+)
 
 ament_auto_add_library(
   ${PROJECT_NAME}
   SHARED
   src/virtual_wrench_node.cpp
+  src/wrench_to_twist_node.cpp
+)
+target_link_libraries(
+  ${PROJECT_NAME} virtual_wrench_params wrench_to_twist_params
 )
 target_link_libraries(${PROJECT_NAME} virtual_wrench_params)
 
-rclcpp_components_register_node(
+rclcpp_components_register_nodes(
   ${PROJECT_NAME}
   PLUGIN
   "prox::attraction::VirtualWrench"
-  EXECUTABLE
-  virtual_wrench
+  "prox::attraction::WrenchToTwist"
 )
 
 if(BUILD_TESTING)
