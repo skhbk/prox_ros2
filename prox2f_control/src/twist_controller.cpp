@@ -74,7 +74,7 @@ CallbackReturn TwistController::on_configure(const rclcpp_lifecycle::State & /*p
   params_ = param_listener_->get_params();
 
   command_subscription_ = this->get_node()->create_subscription<CmdType>(
-    params_.command_topic, rclcpp::SensorDataQoS(),
+    "~/commands", rclcpp::SensorDataQoS(),
     [this](const CmdType::SharedPtr msg) { rt_buffer_.writeFromNonRT(msg); });
 
   state_publisher_ =

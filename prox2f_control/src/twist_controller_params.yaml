@@ -6,8 +6,6 @@ prox::control::twist_controller:
       read_only: true,
     }
 
-  command_topic: { type: string, default_value: "~/commands" }
-
   enabled_axes: { type: bool_array, validation: { fixed_size<>: 6 } }
 
   kinematics:
