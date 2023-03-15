@@ -135,7 +135,7 @@ controller_interface::return_type TwistController::update(
     control_frame_id_ = new_frame_id;
     RCLCPP_INFO_STREAM(
       this->get_node()->get_logger(),
-      "Control-target frame-id is updated: [" << control_frame_id_ << "]");
+      "Control-target frame is updated: [" << control_frame_id_ << "]");
   }
 
   Eigen::Vector<double, 6> twist;
