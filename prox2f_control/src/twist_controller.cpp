@@ -141,8 +141,8 @@ controller_interface::return_type TwistController::update(
   Eigen::Vector<double, 6> twist;
   tf2::fromMsg(twist_msg->twist, twist);
 
-  // If any element is NaN, assume all values are 0
-  if (std::any_of(twist.begin(), twist.end(), [](double x) { return std::isnan(x); })) {
+  // If any element is infinite, assume all values are 0
+  if (std::any_of(twist.begin(), twist.end(), [](double x) { return !std::isfinite(x); })) {
     twist.setZero();
   }
 
