@@ -37,7 +37,7 @@ prox::control::twist_controller:
     p:
       {
         type: double_array,
-        default_value: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        default_value: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
         validation: { fixed_size<>: 6 },
       }
     i:
