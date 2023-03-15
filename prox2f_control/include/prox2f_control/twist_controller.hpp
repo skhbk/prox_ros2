@@ -12,8 +12,8 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef PROX2F_CONTROL__WRENCH_CONTROLLER_HPP_
-#define PROX2F_CONTROL__WRENCH_CONTROLLER_HPP_
+#ifndef PROX2F_CONTROL__TWIST_CONTROLLER_HPP_
+#define PROX2F_CONTROL__TWIST_CONTROLLER_HPP_
 
 #include <memory>
 #include <string>
@@ -25,24 +25,24 @@
 #include "pluginlib/class_loader.hpp"
 #include "realtime_tools/realtime_buffer.h"
 
-#include "geometry_msgs/msg/wrench_stamped.hpp"
-#include "prox_msgs/msg/wrench_controller_state.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
+#include "prox_msgs/msg/twist_controller_state.hpp"
 
-#include "wrench_controller_params.hpp"
+#include "twist_controller_params.hpp"
 
 namespace prox::control
 {
 
-using CmdType = geometry_msgs::msg::WrenchStamped;
-using ControllerStateMsg = prox_msgs::msg::WrenchControllerState;
+using CmdType = geometry_msgs::msg::TwistStamped;
+using ControllerStateMsg = prox_msgs::msg::TwistControllerState;
 
-class WrenchController : public controller_interface::ControllerInterface
+class TwistController : public controller_interface::ControllerInterface
 {
-  std::shared_ptr<wrench_controller::ParamListener> param_listener_;
-  wrench_controller::Params params_;
+  std::shared_ptr<twist_controller::ParamListener> param_listener_;
+  twist_controller::Params params_;
 
   std::string control_frame_id_;
-  Eigen::Vector<double, 6> wrench_;
+  Eigen::Vector<double, 6> twist_;
 
   std::vector<control_toolbox::Pid> pids_;
   std::shared_ptr<pluginlib::ClassLoader<kinematics_interface::KinematicsInterface>> ik_loader_;
@@ -77,4 +77,4 @@ private:
 
 }  // namespace prox::control
 
-#endif  // PROX2F_CONTROL__WRENCH_CONTROLLER_HPP_
+#endif  // PROX2F_CONTROL__TWIST_CONTROLLER_HPP_

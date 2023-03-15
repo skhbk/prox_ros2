@@ -2,8 +2,8 @@ controller_manager:
   ros__parameters:
     update_rate: 100
 
-    wrench_controller:
-      type: prox2f_control/WrenchController
+    twist_controller:
+      type: prox2f_control/TwistController
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -17,7 +17,7 @@ controller_manager:
     force_torque_sensor_broadcaster:
       type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
 
-wrench_controller:
+twist_controller:
   ros__parameters:
     update_rate: 30
     joints:

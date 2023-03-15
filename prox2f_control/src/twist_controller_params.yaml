@@ -1,4 +1,4 @@
-prox::control::wrench_controller:
+prox::control::twist_controller:
   joints:
     {
       type: string_array,

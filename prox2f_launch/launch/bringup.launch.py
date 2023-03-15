@@ -152,10 +152,10 @@ def generate_launch_description():
         arguments=["force_torque_sensor_broadcaster", "-c", "/controller_manager"],
     )
 
-    wrench_controller_spawner = Node(
+    twist_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["wrench_controller", "-c", "/controller_manager", "--inactive"],
+        arguments=["twist_controller", "-c", "/controller_manager", "--inactive"],
     )
 
     # Rviz
@@ -190,7 +190,7 @@ def generate_launch_description():
         io_and_status_controller_spawner,
         speed_scaling_state_broadcaster_spawner,
         force_torque_sensor_broadcaster_spawner,
-        wrench_controller_spawner,
+        twist_controller_spawner,
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=joint_state_broadcaster_spawner,
