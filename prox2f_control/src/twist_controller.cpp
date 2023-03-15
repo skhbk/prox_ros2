@@ -199,6 +199,7 @@ controller_interface::return_type TwistController::update(
     state_msg.input_twist = tf2::toMsg(twist);
     state_msg.actual_twist = tf2::toMsg(actual_twist);
     state_msg.base_twist = tf2::toMsg(base_twist);
+    state_msg.joint_commands = joint_commands;
     state_publisher_->publish(state_msg);
   }
 
