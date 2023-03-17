@@ -74,7 +74,7 @@
     <joint name="${name}_joint" type="fixed">
       <parent link="${parent}" />
       <child link="${name}" />
-      <origin xyz="-3.5013e-3 0 29e-3" rpy="0 -${pi/2} 0" />
+      <origin xyz="-4.25e-3 0 29.51e-3" rpy="0 -${pi/2} 0" />
     </joint>
     <!-- Create dummy link for gazebo_ros_camera because it publishes image in wrong orientation -->
     <xacro:if value="$(arg sim_gazebo)">
