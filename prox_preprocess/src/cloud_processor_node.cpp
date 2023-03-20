@@ -65,42 +65,36 @@ public:
     PointCloud2 output_msg;
     output_msg.header = input_msg->header;
 
-    pcl::PointCloud<pcl::PointXYZ> cloud;
-    pcl::fromROSMsg(*input_msg, cloud);
-    assert(cloud.isOrganized());
-
-    const auto cloud_ptr = pcl::make_shared<decltype(cloud)>(cloud);
+    const auto cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+    pcl::fromROSMsg(*input_msg, *cloud);
+    assert(cloud->isOrganized());
 
     // Pass through
     {
       pcl::PassThrough<pcl::PointXYZ> filter(true);
-      filter.setInputCloud(cloud_ptr);
+      filter.setInputCloud(cloud);
       filter.setFilterFieldName(params_.pass_through.field_name);
       filter.setFilterLimits(params_.pass_through.bounds[0], params_.pass_through.bounds[1]);
       filter.setKeepOrganized(true);
-      decltype(cloud) cloud_out;
-      filter.filter(cloud_out);
-      cloud = cloud_out;
+      filter.filter(*cloud);
     }
 
     // Get indices without NaN points
     pcl::Indices indices;
-    pcl::removeNaNFromPointCloud(*cloud_ptr, indices);
+    pcl::removeNaNFromPointCloud(*cloud, indices);
 
     // Remove outliers
     {
       pcl::RadiusOutlierRemoval<pcl::PointXYZ> filter(true);
-      filter.setInputCloud(cloud_ptr);
+      filter.setInputCloud(cloud);
       filter.setIndices(pcl::make_shared<decltype(indices)>(indices));
       filter.setRadiusSearch(params_.outlier_removal.radius);
       filter.setMinNeighborsInRadius(params_.outlier_removal.min_neighbors);
       filter.setKeepOrganized(true);
-      decltype(cloud) cloud_out;
-      filter.filter(cloud_out);
-      cloud = cloud_out;
+      filter.filter(*cloud);
     }
 
-    pcl::toROSMsg(cloud, output_msg);
+    pcl::toROSMsg(*cloud, output_msg);
 
     publisher_->publish(output_msg);
   }
