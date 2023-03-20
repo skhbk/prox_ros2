@@ -12,8 +12,6 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
-find_package(PCL REQUIRED COMPONENTS common filters)
-
 generate_parameter_library(
   image_smoothing_params src/image_smoothing_params.yaml
 )

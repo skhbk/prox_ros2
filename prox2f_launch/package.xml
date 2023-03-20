@@ -14,7 +14,6 @@
   <exec_depend>prox2f_description</exec_depend>
   <exec_depend>robotiq_2f_85_description</exec_depend>
   <exec_depend>ur_robot_driver</exec_depend>
-  <exec_depend>vl53l5cx</exec_depend>
 
   <exec_depend>gazebo_ros</exec_depend>
 
