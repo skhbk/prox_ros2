@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 100
+    update_rate: 500
 
     twist_controller:
       type: prox2f_control/TwistController
@@ -19,7 +19,7 @@ controller_manager:
 
 twist_controller:
   ros__parameters:
-    update_rate: 3 # not Hz, but divisor
+    update_rate: 10 # not Hz, but divisor
     joints:
       - shoulder_pan_joint
       - shoulder_lift_joint
@@ -31,15 +31,15 @@ twist_controller:
       end_effector_link: tcp
     enabled_axes:
       - true
-      - false
-      - false
-      - false
+      - true
+      - true
       - false
       - true
-    filter_coefficient: 0.5
+      - true
+    filter_coefficient: 0.3
     safety:
       linear_speed_limit: 0.1
-      angular_speed_limit: 3.14
+      angular_speed_limit: 1.57
 
 speed_scaling_state_broadcaster:
   ros__parameters:

@@ -23,6 +23,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
+#include "prox_msgs/msg/grid.hpp"
 #include "prox_msgs/msg/mesh_stamped.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
@@ -38,7 +39,8 @@ class ResampleMesh : public rclcpp::Node
   resample_mesh::Params params_;
 
   rclcpp::Subscription<prox_msgs::msg::MeshStamped>::SharedPtr subscription_;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_publisher_;
+  rclcpp::Publisher<prox_msgs::msg::Grid>::SharedPtr grid_publisher_;
 
   std::unique_ptr<Raycaster> raycaster_;
   size_t rows_, cols_;
@@ -49,6 +51,8 @@ public:
 private:
   void topic_callback(const prox_msgs::msg::MeshStamped::ConstSharedPtr & mesh_msg);
   std::vector<Ray> get_rays() const;
+  sensor_msgs::msg::PointCloud2 hits_to_cloud(const std::vector<Hit> & hits) const;
+  prox_msgs::msg::Grid hits_to_grid(const std::vector<Hit> & hits) const;
 };
 
 }  // namespace prox::mesh

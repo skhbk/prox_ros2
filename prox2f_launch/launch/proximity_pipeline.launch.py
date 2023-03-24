@@ -38,6 +38,7 @@ def generate_launch_description():
     )
 
     containers = []
+
     for input_namespace, output_namespace in zip(input_namespaces, output_namespaces):
         composable_nodes = []
         # Image smoothing
@@ -107,6 +108,7 @@ def generate_launch_description():
                 plugin="prox::mesh::ResampleMesh",
                 namespace=output_namespace,
                 remappings=[("input/mesh_stamped", "triangulation/mesh_stamped")],
+                parameters=[{"publish_grid": True, "publish_cloud": False}],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
@@ -122,6 +124,44 @@ def generate_launch_description():
                 arguments=["--ros-args", "--log-level", "warn"],
             )
         )
+
+    virtual_wrench_node = ComposableNode(
+        package="prox2f_attraction",
+        plugin="prox::attraction::VirtualWrench",
+        remappings=[
+            ("input1/grid", [output_namespaces[0], "/resample_mesh/grid"]),
+            ("input2/grid", [output_namespaces[1], "/resample_mesh/grid"]),
+        ],
+        parameters=[
+            {
+                "wrench_frame_id": "tcp",
+                "attraction_frame_ids": ["left_attraction", "right_attraction"],
+                "force_scales": [0.2, 1.0, 1.0],
+            }
+        ],
+        extra_arguments=[{"use_intra_process_comms": True}],
+    )
+    wrench_to_twist_node = ComposableNode(
+        package="prox2f_attraction",
+        plugin="prox::attraction::WrenchToTwist",
+        remappings=[
+            ("input/wrench_stamped", "virtual_wrench/wrench_stamped"),
+            ("~/twist_stamped", "twist_controller/commands"),
+        ],
+        parameters=[{"mass": 0.3, "inertia": 0.01}],
+        extra_arguments=[{"use_intra_process_comms": True}],
+    )
+    containers.append(
+        ComposableNodeContainer(
+            name="attraction_container",
+            namespace="",
+            package="rclcpp_components",
+            executable="component_container",
+            composable_node_descriptions=[virtual_wrench_node, wrench_to_twist_node],
+            emulate_tty=True,
+            arguments=["--ros-args", "--log-level", "warn"],
+        )
+    )
 
     actions = [*containers]
 
