@@ -29,13 +29,11 @@ using sensor_msgs::msg::PointCloud2;
 using std::placeholders::_1;
 
 ResampleMesh::ResampleMesh(const rclcpp::NodeOptions & options)
-: Node("resample_mesh", options),
-  param_listener_(this->get_node_parameters_interface()),
-  params_(param_listener_.get_params()),
-  raycaster_(std::make_unique<RaycasterEmbree>())
+: Node("resample_mesh", options), raycaster_(std::make_unique<RaycasterEmbree>())
 {
-  rows_ = static_cast<size_t>(std::floor(params_.height / params_.pitch));
-  cols_ = static_cast<size_t>(std::floor(params_.width / params_.pitch));
+  param_listener_ =
+    std::make_shared<resample_mesh::ParamListener>(this->get_node_parameters_interface());
+  this->configure_params();
 
   subscription_ = this->create_subscription<MeshStamped>(
     "input/mesh_stamped", rclcpp::SensorDataQoS(),
@@ -51,6 +49,10 @@ ResampleMesh::ResampleMesh(const rclcpp::NodeOptions & options)
 
 void ResampleMesh::topic_callback(const MeshStamped::ConstSharedPtr & mesh_msg)
 {
+  if (param_listener_->is_old(params_)) {
+    this->configure_params();
+  }
+
   std::vector<Hit> hits;
   if (!mesh_msg->mesh.triangles.empty()) {
     raycaster_->load_mesh(mesh_msg->mesh);
@@ -69,6 +71,14 @@ void ResampleMesh::topic_callback(const MeshStamped::ConstSharedPtr & mesh_msg)
     grid_msg.header = mesh_msg->header;
     grid_publisher_->publish(grid_msg);
   }
+}
+
+void ResampleMesh::configure_params()
+{
+  params_ = param_listener_->get_params();
+
+  rows_ = static_cast<size_t>(std::floor(params_.height / params_.pitch));
+  cols_ = static_cast<size_t>(std::floor(params_.width / params_.pitch));
 }
 
 std::vector<Ray> ResampleMesh::get_rays() const

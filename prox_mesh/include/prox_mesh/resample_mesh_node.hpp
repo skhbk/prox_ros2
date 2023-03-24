@@ -35,7 +35,7 @@ using Polygon = std::array<uint32_t, 3>;
 
 class ResampleMesh : public rclcpp::Node
 {
-  resample_mesh::ParamListener param_listener_;
+  std::shared_ptr<resample_mesh::ParamListener> param_listener_;
   resample_mesh::Params params_;
 
   rclcpp::Subscription<prox_msgs::msg::MeshStamped>::SharedPtr subscription_;
@@ -50,6 +50,7 @@ public:
 
 private:
   void topic_callback(const prox_msgs::msg::MeshStamped::ConstSharedPtr & mesh_msg);
+  void configure_params();
   std::vector<Ray> get_rays() const;
   sensor_msgs::msg::PointCloud2 hits_to_cloud(const std::vector<Hit> & hits) const;
   prox_msgs::msg::Grid hits_to_grid(const std::vector<Hit> & hits) const;
