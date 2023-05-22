@@ -121,10 +121,13 @@ void VirtualWrench::get_vectors(
 
   // Compute gradients
   cv::Mat1f dx, dy;
-  cv::Scharr(mat, dx, CV_32F, 1, 0);
-  cv::Scharr(mat, dy, CV_32F, 0, 1);
-  cv::medianBlur(dx, dx, 3);
-  cv::medianBlur(dy, dy, 3);
+  {
+    const float scale = params_.gradient_scale / pitch;
+    cv::Scharr(mat, dx, CV_32F, 1, 0, scale);
+    cv::Scharr(mat, dy, CV_32F, 0, 1, scale);
+    cv::medianBlur(dx, dx, 3);
+    cv::medianBlur(dy, dy, 3);
+  }
 
   // Erode mask
   cv::Mat1b eroded_mask;
