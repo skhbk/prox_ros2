@@ -132,13 +132,7 @@ def generate_launch_description():
             ("input1/grid", [output_namespaces[0], "/resample_mesh/grid"]),
             ("input2/grid", [output_namespaces[1], "/resample_mesh/grid"]),
         ],
-        parameters=[
-            {
-                "wrench_frame_id": "tcp",
-                "attraction_frame_ids": ["left_attraction", "right_attraction"],
-                "force_scales": [0.2, 1.0, 1.0],
-            }
-        ],
+        parameters=[{"wrench_frame_id": "tcp"}],
         extra_arguments=[{"use_intra_process_comms": True}],
     )
     wrench_to_twist_node = ComposableNode(
