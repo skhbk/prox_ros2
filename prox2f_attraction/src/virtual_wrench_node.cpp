@@ -23,7 +23,6 @@ namespace prox::attraction
 using geometry_msgs::msg::WrenchStamped;
 using prox_msgs::msg::Grid;
 using std::placeholders::_1, std::placeholders::_2;
-using visualization_msgs::msg::Marker;
 
 VirtualWrench::VirtualWrench(const rclcpp::NodeOptions & options)
 : Node("virtual_wrench", options), tf_buffer_(this->get_clock()), tf_listener_(tf_buffer_), sync_(5)
@@ -37,11 +36,6 @@ VirtualWrench::VirtualWrench(const rclcpp::NodeOptions & options)
   sync_.connectInput(subscriber1_, subscriber2_);
   sync_.registerCallback(std::bind(&VirtualWrench::topic_callback, this, _1, _2));
   publisher_ = this->create_publisher<WrenchStamped>("~/wrench_stamped", rclcpp::SensorDataQoS());
-
-  for (const auto & topic_name : {"~/marker1", "~/marker2"}) {
-    marker_publishers_.emplace_back(
-      this->create_publisher<Marker>(topic_name, rclcpp::SensorDataQoS()));
-  }
 }
 
 void VirtualWrench::topic_callback(
@@ -84,37 +78,6 @@ void VirtualWrench::topic_callback(
     }
     force += local_force;
     torque += local_torque;
-
-    // Visual stuff
-    Marker marker;
-    {
-      marker.ns = this->get_namespace();
-      marker.id = i;
-      marker.type = Marker::LINE_LIST;
-
-      if (n_force_lines == 0) {
-        marker.action = Marker::DELETE;
-      } else {
-        marker.action = Marker::ADD;
-        marker.scale.x = 0.0002;
-        marker.color.r = 1;
-        marker.color.g = 0;
-        marker.color.b = 0;
-        marker.color.a = 0.7;
-
-        marker.points.reserve(2 * n_force_lines);
-        for (size_t n = 0; n < n_force_lines; ++n) {
-          geometry_msgs::msg::Point p1, p2;
-          tf2::toMsg(positions[n] + shifts[n], p1);
-          tf2::toMsg(shifts[n], p2);
-          marker.points.emplace_back(p1);
-          marker.points.emplace_back(p2);
-        }
-      }
-      marker.header.frame_id = params_.wrench_frame_id;
-      marker.header.stamp = msgs[i]->header.stamp;
-    }
-    marker_publishers_[i]->publish(marker);
   }
 
   tf2::Vector3 force_scale{
