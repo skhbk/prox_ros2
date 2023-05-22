@@ -56,11 +56,11 @@ private:
   void topic_callback(
     const prox_msgs::msg::Grid::ConstSharedPtr & grid_msg1,
     const prox_msgs::msg::Grid::ConstSharedPtr & grid_msg2);
-  void get_position_vectors(
+  void get_vectors(
     const prox_msgs::msg::Grid & grid_msg, std::vector<tf2::Vector3> & positions,
-    std::vector<tf2::Vector3> & shifts) const;
+    std::vector<tf2::Vector3> & gradients) const;
   std::array<tf2::Vector3, 2> compute_wrench(
-    const tf2::Vector3 & origin, const tf2::Vector3 & position, const tf2::Vector3 & shift) const;
+    const tf2::Vector3 & position, const tf2::Vector3 & gradient) const;
 };
 
 }  // namespace prox::attraction

@@ -60,15 +60,15 @@ void VirtualWrench::topic_callback(
 
   tf2::Vector3 force{0, 0, 0}, torque{0, 0, 0};
   for (size_t i = 0; i < msgs.size(); ++i) {
-    std::vector<tf2::Vector3> positions, shifts;
+    std::vector<tf2::Vector3> positions, gradients;
 
-    this->get_position_vectors(*msgs[i], positions, shifts);
+    this->get_vectors(*msgs[i], positions, gradients);
 
     // Compute wrench
     const size_t n_force_lines = positions.size();
     tf2::Vector3 local_force{0, 0, 0}, local_torque{0, 0, 0};
     for (size_t n = 0; n < n_force_lines; ++n) {
-      const auto wrench = this->compute_wrench({0, 0, 0}, positions[n], shifts[n]);
+      const auto wrench = this->compute_wrench(positions[n], gradients[n]);
       local_force += wrench[0];
       local_torque += wrench[1];
     }
@@ -94,9 +94,9 @@ void VirtualWrench::topic_callback(
   publisher_->publish(wrench_msg);
 }
 
-void VirtualWrench::get_position_vectors(
+void VirtualWrench::get_vectors(
   const Grid & grid_msg, std::vector<tf2::Vector3> & positions,
-  std::vector<tf2::Vector3> & shifts) const
+  std::vector<tf2::Vector3> & gradients) const
 {
   const size_t width = grid_msg.width, height = grid_msg.height;
   const float pitch = grid_msg.pitch;
@@ -130,7 +130,7 @@ void VirtualWrench::get_position_vectors(
   cv::Mat1b eroded_mask;
   cv::erode(mask, eroded_mask, cv::Mat1b::ones(5, 5));
 
-  // Get transforms to the wrench frame
+  // Get transform to the wrench frame
   tf2::Transform tf_sensor;
   {
     const auto tf_sensor_msg = tf_buffer_.lookupTransform(
@@ -146,8 +146,8 @@ void VirtualWrench::get_position_vectors(
     const auto n_valid_points = cv::countNonZero(eroded_mask);
     positions.clear();
     positions.reserve(n_valid_points);
-    shifts.clear();
-    shifts.reserve(n_valid_points);
+    gradients.clear();
+    gradients.reserve(n_valid_points);
   }
 
   for (size_t i = 0; i < height; ++i) {
@@ -164,23 +164,23 @@ void VirtualWrench::get_position_vectors(
       assert(std::isfinite(mat_row[j]));
 
       // Compute position vector
-      const tf2::Vector3 r_sensor{j * pitch - center_x, i * pitch - center_y, mat_row[j]};
-      const auto r = tf_sensor * r_sensor;
-      positions.push_back(r);
+      const tf2::Vector3 p_sensor{j * pitch - center_x, i * pitch - center_y, mat_row[j]};
+      const auto p = tf_sensor * p_sensor;
+      positions.push_back(p);
 
-      // Compute shift vector
-      const tf2::Vector3 shift_sensor{-dx_row[j], -dy_row[j], 0};
-      auto shift = tf_sensor.getBasis() * shift_sensor;
-      shifts.push_back(shift);
+      // Compute gradient vector
+      const tf2::Vector3 g_sensor{dx_row[j], dy_row[j], 0};
+      auto g = tf_sensor.getBasis() * g_sensor;
+      gradients.push_back(g);
     }
   }
 }
 
 std::array<tf2::Vector3, 2> VirtualWrench::compute_wrench(
-  const tf2::Vector3 & origin, const tf2::Vector3 & position, const tf2::Vector3 & shift) const
+  const tf2::Vector3 & position, const tf2::Vector3 & gradient) const
 {
-  const auto force = params_.stiffness * (position - origin);
-  const auto torque = shift.cross(force);
+  const auto force = params_.stiffness * position;
+  const auto torque = position.cross(params_.stiffness * gradient);
 
   return {force, torque};
 }
