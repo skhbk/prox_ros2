@@ -16,6 +16,7 @@
 #define PROX2F_ATTRACTION__VIRTUAL_WRENCH_NODE_HPP_
 
 #include <memory>
+#include <vector>
 
 #include "virtual_wrench_params.hpp"
 
@@ -31,7 +32,6 @@
 
 #include "geometry_msgs/msg/wrench_stamped.hpp"
 #include "prox_msgs/msg/grid.hpp"
-#include "visualization_msgs/msg/marker.hpp"
 
 namespace prox::attraction
 {
@@ -48,10 +48,6 @@ class VirtualWrench : public rclcpp::Node
     message_filters::sync_policies::ApproximateTime<prox_msgs::msg::Grid, prox_msgs::msg::Grid>>
     sync_;
   rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr publisher_;
-  std::vector<rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr> marker_publishers_;
-
-  size_t width_, height_;
-  double pitch_;
 
 public:
   explicit VirtualWrench(const rclcpp::NodeOptions & options);
@@ -60,12 +56,11 @@ private:
   void topic_callback(
     const prox_msgs::msg::Grid::ConstSharedPtr & grid_msg1,
     const prox_msgs::msg::Grid::ConstSharedPtr & grid_msg2);
+  void get_vectors(
+    const prox_msgs::msg::Grid & grid_msg, std::vector<tf2::Vector3> & positions,
+    std::vector<tf2::Vector3> & gradients) const;
   std::array<tf2::Vector3, 2> compute_wrench(
-    cv::Mat1f mat, cv::Mat1b mask, const std::string & sensor_frame_id,
-    const std::string & attraction_frame_id,
-    std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> cloud) const;
-  visualization_msgs::msg::Marker visualize_attraction(
-    const pcl::PointCloud<pcl::PointXYZ> & cloud, int32_t marker_id) const;
+    const tf2::Vector3 & position, const tf2::Vector3 & gradient) const;
 };
 
 }  // namespace prox::attraction
