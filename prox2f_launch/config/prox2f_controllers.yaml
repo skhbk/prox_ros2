@@ -36,14 +36,10 @@ twist_controller:
       - false
       - true
       - true
-    filter_coefficient: 0.3
+    filter_coefficient: 0.1
     safety:
       linear_speed_limit: 0.1
-      angular_speed_limit: 1.57
-
-speed_scaling_state_broadcaster:
-  ros__parameters:
-    state_publish_rate: 100.0
+      angular_speed_limit: 0.5
 
 force_torque_sensor_broadcaster:
   ros__parameters:
