@@ -141,6 +141,11 @@ controller_interface::return_type TwistController::update(
   Eigen::Vector<double, 6> twist;
   tf2::fromMsg(twist_msg->twist, twist);
 
+  // Check if publisher is alive
+  if (command_subscription_->get_publisher_count() == 0) {
+    twist.setZero();
+  }
+
   // If any element is infinite, assume all values are 0
   if (std::any_of(twist.begin(), twist.end(), [](double x) { return !std::isfinite(x); })) {
     twist.setZero();
