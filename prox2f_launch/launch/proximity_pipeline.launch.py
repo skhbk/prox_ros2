@@ -22,10 +22,14 @@ from launch_ros.descriptions import ComposableNode
 def generate_launch_description():
     args = []
     args.append(
-        DeclareLaunchArgument("left_sensor_namespace", default_value="/vl53l5cx/x2a")
+        DeclareLaunchArgument(
+            "left_sensor_namespace", default_value="/vl53l5cx_left/x29"
+        )
     )
     args.append(
-        DeclareLaunchArgument("right_sensor_namespace", default_value="/vl53l5cx/x2b")
+        DeclareLaunchArgument(
+            "right_sensor_namespace", default_value="/vl53l5cx_right/x29"
+        )
     )
 
     input_namespaces = [
@@ -108,7 +112,9 @@ def generate_launch_description():
                 plugin="prox::mesh::ResampleMesh",
                 namespace=output_namespace,
                 remappings=[("input/mesh_stamped", "triangulation/mesh_stamped")],
-                parameters=[{"publish_grid": True, "publish_cloud": False}],
+                parameters=[
+                    {"pitch": 0.001, "publish_grid": True, "publish_cloud": False}
+                ],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
@@ -132,7 +138,7 @@ def generate_launch_description():
             ("input1/grid", [output_namespaces[0], "/resample_mesh/grid"]),
             ("input2/grid", [output_namespaces[1], "/resample_mesh/grid"]),
         ],
-        parameters=[{"wrench_frame_id": "tcp"}],
+        parameters=[{"wrench_frame_id": "tcp", "gradient_scale": 0.001}],
         extra_arguments=[{"use_intra_process_comms": True}],
     )
     wrench_to_twist_node = ComposableNode(
@@ -142,7 +148,7 @@ def generate_launch_description():
             ("input/wrench_stamped", "virtual_wrench/wrench_stamped"),
             ("~/twist_stamped", "twist_controller/commands"),
         ],
-        parameters=[{"mass": 0.3, "inertia": 0.01}],
+        parameters=[{"mass": 0.4, "inertia": 0.001}],
         extra_arguments=[{"use_intra_process_comms": True}],
     )
     containers.append(
