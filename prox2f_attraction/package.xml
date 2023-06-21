@@ -10,8 +10,8 @@
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
   <depend>generate_parameter_library</depend>
-  <depend>OpenCV</depend>
   <depend>PCL</depend>
+  <depend>pcl_conversions</depend>
   <depend>message_filters</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
@@ -20,7 +20,7 @@
   <depend>tf2_ros</depend>
 
   <depend>geometry_msgs</depend>
-  <depend>prox_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>visualization_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>

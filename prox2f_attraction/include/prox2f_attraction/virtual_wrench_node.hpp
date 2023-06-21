@@ -23,15 +23,12 @@
 #include "message_filters/subscriber.h"
 #include "message_filters/sync_policies/approximate_time.h"
 #include "message_filters/synchronizer.h"
-#include "opencv2/core.hpp"
-#include "pcl/point_cloud.h"
-#include "pcl/point_types.h"
 #include "rclcpp/rclcpp.hpp"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_listener.h"
 
 #include "geometry_msgs/msg/wrench_stamped.hpp"
-#include "prox_msgs/msg/grid.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
 
 namespace prox::attraction
 {
@@ -43,9 +40,9 @@ class VirtualWrench : public rclcpp::Node
 
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
-  message_filters::Subscriber<prox_msgs::msg::Grid> subscriber1_, subscriber2_;
-  message_filters::Synchronizer<
-    message_filters::sync_policies::ApproximateTime<prox_msgs::msg::Grid, prox_msgs::msg::Grid>>
+  message_filters::Subscriber<sensor_msgs::msg::PointCloud2> subscriber1_, subscriber2_;
+  message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<
+    sensor_msgs::msg::PointCloud2, sensor_msgs::msg::PointCloud2>>
     sync_;
   rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr publisher_;
 
@@ -54,13 +51,8 @@ public:
 
 private:
   void topic_callback(
-    const prox_msgs::msg::Grid::ConstSharedPtr & grid_msg1,
-    const prox_msgs::msg::Grid::ConstSharedPtr & grid_msg2);
-  void get_vectors(
-    const prox_msgs::msg::Grid & grid_msg, std::vector<tf2::Vector3> & positions,
-    std::vector<tf2::Vector3> & gradients) const;
-  std::array<tf2::Vector3, 2> compute_wrench(
-    const tf2::Vector3 & position, const tf2::Vector3 & gradient) const;
+    const sensor_msgs::msg::PointCloud2::ConstSharedPtr & normals_msg1,
+    const sensor_msgs::msg::PointCloud2::ConstSharedPtr & normals_msg2);
 };
 
 }  // namespace prox::attraction

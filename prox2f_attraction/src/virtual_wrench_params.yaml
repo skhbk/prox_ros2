@@ -1,7 +1,7 @@
 prox::attraction::virtual_wrench:
   wrench_frame_id: { type: string, description: "Frame of the wrench." }
-  gradient_scale: { type: double, default_value: 1.0 }
-  stiffness: { type: double, default_value: 1.0 }
+  normal_scale: { type: double, default_value: 1.0 }
+  stiffness: { type: double, default_value: 0.0 }
   force_scales:
     {
       type: double_array,
