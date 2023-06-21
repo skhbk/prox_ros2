@@ -105,16 +105,13 @@ def generate_launch_description():
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
-        # Resample
+        # Normals visualization
         composable_nodes.append(
             ComposableNode(
                 package="prox_mesh",
-                plugin="prox::mesh::ResampleMesh",
+                plugin="prox::mesh::NormalsToMarker",
                 namespace=output_namespace,
-                remappings=[("input/mesh_stamped", "triangulation/mesh_stamped")],
-                parameters=[
-                    {"pitch": 0.001, "publish_grid": True, "publish_cloud": False}
-                ],
+                remappings=[("input/normals", "triangulation/normals")],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
@@ -135,10 +132,12 @@ def generate_launch_description():
         package="prox2f_attraction",
         plugin="prox::attraction::VirtualWrench",
         remappings=[
-            ("input1/grid", [output_namespaces[0], "/resample_mesh/grid"]),
-            ("input2/grid", [output_namespaces[1], "/resample_mesh/grid"]),
+            ("input1/normals", [output_namespaces[0], "/triangulation/normals"]),
+            ("input2/normals", [output_namespaces[1], "/triangulation/normals"]),
         ],
-        parameters=[{"wrench_frame_id": "tcp", "gradient_scale": 0.001}],
+        parameters=[
+            {"wrench_frame_id": "tcp", "normal_scale": 0.05, "stiffness": 1 / 64}
+        ],
         extra_arguments=[{"use_intra_process_comms": True}],
     )
     wrench_to_twist_node = ComposableNode(
@@ -148,7 +147,7 @@ def generate_launch_description():
             ("input/wrench_stamped", "virtual_wrench/wrench_stamped"),
             ("~/twist_stamped", "twist_controller/commands"),
         ],
-        parameters=[{"mass": 0.4, "inertia": 0.001}],
+        parameters=[{"mass": 0.5, "inertia": 0.001}],
         extra_arguments=[{"use_intra_process_comms": True}],
     )
     containers.append(
