@@ -25,6 +25,7 @@ ament_auto_add_library(
   src/triangulation_node.cpp
   src/mesh_to_marker_node.cpp
   src/resample_mesh_node.cpp
+  src/normals_to_marker_node.cpp
 )
 target_link_libraries(
   ${PROJECT_NAME}
@@ -39,6 +40,7 @@ rclcpp_components_register_nodes(
   "prox::mesh::Triangulation"
   "prox::mesh::MeshToMarker"
   "prox::mesh::ResampleMesh"
+  "prox::mesh::NormalsToMarker"
 )
 
 find_package(ament_cmake REQUIRED)
