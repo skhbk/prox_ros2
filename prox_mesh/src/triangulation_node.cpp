@@ -14,6 +14,7 @@
 
 #include "prox_mesh/triangulation_node.hpp"
 
+#include "pcl/features/from_meshes.h"
 #include "pcl/point_cloud.h"
 #include "pcl/point_types.h"
 #include "pcl/surface/organized_fast_mesh.h"
@@ -30,12 +31,15 @@ Triangulation::Triangulation(const rclcpp::NodeOptions & options) : Node("triang
 {
   subscription_ = this->create_subscription<PointCloud2>(
     "input/points", rclcpp::SensorDataQoS(), std::bind(&Triangulation::topic_callback, this, _1));
-  publisher_ = this->create_publisher<MeshStamped>("~/mesh_stamped", rclcpp::SensorDataQoS());
+  mesh_publisher_ = this->create_publisher<MeshStamped>("~/mesh_stamped", rclcpp::SensorDataQoS());
+  normals_publisher_ = this->create_publisher<PointCloud2>("~/normals", rclcpp::SensorDataQoS());
 }
 
 void Triangulation::topic_callback(const PointCloud2::ConstSharedPtr & cloud_msg)
 {
-  if (publisher_->get_subscription_count() == 0) {
+  if (
+    mesh_publisher_->get_subscription_count() == 0 &&
+    normals_publisher_->get_subscription_count() == 0) {
     return;
   }
 
@@ -50,7 +54,18 @@ void Triangulation::topic_callback(const PointCloud2::ConstSharedPtr & cloud_msg
   ofm.setTriangulationType(ofm.TRIANGLE_ADAPTIVE_CUT);
   ofm.reconstruct(polygons);
 
-  // Convert to message
+  // Normal estimation
+  pcl::PointCloud<pcl::PointNormal> normals;
+  pcl::features::computeApproximateNormals(*cloud, polygons, normals);
+  for (size_t i = 0; i < cloud->size(); ++i) {
+    auto & point = cloud->at(i);
+    auto & point_normal = normals.at(i);
+    point_normal.x = point.x;
+    point_normal.y = point.y;
+    point_normal.z = point.z;
+  }
+
+  // Convert to mesh message
   MeshStamped mesh_msg;
   mesh_msg.header = cloud_msg->header;
   for (const auto & e : *cloud) {
@@ -68,7 +83,13 @@ void Triangulation::topic_callback(const PointCloud2::ConstSharedPtr & cloud_msg
     mesh_msg.mesh.triangles.emplace_back(triangle);
   }
 
-  publisher_->publish(mesh_msg);
+  mesh_publisher_->publish(mesh_msg);
+
+  // Convert to normals message
+  PointCloud2 normals_msg;
+  pcl::toROSMsg(normals, normals_msg);
+
+  normals_publisher_->publish(normals_msg);
 }
 
 }  // namespace prox::mesh
