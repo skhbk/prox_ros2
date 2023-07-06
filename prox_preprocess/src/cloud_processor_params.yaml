@@ -10,5 +10,4 @@ prox::preprocess::cloud_processor:
 
   outlier_removal:
     radius: { type: double, default_value: 0.02 }
-    min_neighbors:
-      { type: int, default_value: 3, validation: { lower_bounds<>: [0] } }
+    min_neighbors: { type: int, default_value: 3, validation: { gt_eq<>: [0] } }
