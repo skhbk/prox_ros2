@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded: ~
       Splitter Ratio: 0.4079365134239197
-    Tree Height: 811
+    Tree Height: 784
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -103,57 +103,50 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        grp_coupling_link:
+        grp_fingertip_l:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        grp_fingertip_r:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        grp_gear_l:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        grp_left_finger1_link:
+        grp_gear_r:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        grp_left_finger2_link:
+        grp_link1_l:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        grp_left_finger3_link:
+        grp_link1_r:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        grp_left_finger4_link:
+        grp_link2_l:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        grp_left_fingertip_link:
+        grp_link2_r:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        grp_right_finger1_link:
+        grp_link3_l:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        grp_right_finger2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        grp_right_finger3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        grp_right_finger4_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        grp_right_fingertip_link:
+        grp_link3_r:
           Alpha: 1
           Show Axes: false
           Show Trail: false

@@ -6,6 +6,7 @@
   <xacro:arg name="sim_gazebo" default="false" />
   <xacro:arg name="simulation_controllers" default="" />
   <xacro:property name="sim_gazebo" value="$(arg sim_gazebo)" />
+  <xacro:arg name="tool_baud_rate" default="1000000" />
 
   <!-- Gripper parameters -->
   <xacro:arg name="gripper_prefix" default="grp_" />
@@ -14,6 +15,7 @@
   <xacro:arg name="ur_type" default="ur5e" />
   <xacro:arg name="robot_ip" default="0.0.0.0" />
   <xacro:arg name="safety_limits" default="true" />
+  <xacro:arg name="use_tool_communication" default="true" />
   <xacro:arg name="joint_limit_params"
     default="$(find ur_description)/config/$(arg ur_type)/joint_limits.yaml" />
   <xacro:arg name="kinematics_params"
@@ -47,6 +49,9 @@
     use_fake_hardware="$(arg use_fake_hardware)"
     sim_gazebo="$(arg sim_gazebo)"
     initial_positions="${xacro.load_yaml(initial_positions_file)}"
+    use_tool_communication="$(arg use_tool_communication)"
+    tool_voltage="12"
+    tool_baud_rate="$(arg tool_baud_rate)"
     robot_ip="$(arg robot_ip)"
     script_filename="$(arg script_filename)"
     output_recipe_filename="$(arg output_recipe_filename)"
@@ -56,15 +61,17 @@
   </xacro:ur_robot>
 
   <!-- Gripper -->
-  <xacro:include filename="$(find robotiq_2f_85_description)/urdf/robotiq_2f_85_macro.xacro" />
-  <xacro:robotiq_2f_85
-    name="grp"
-    prefix="$(arg gripper_prefix)"
-    ur_coupling="true"
-    mimic="${not sim_gazebo}" />
-  <joint name="$(arg gripper_prefix)coupling_joint" type="fixed">
+  <xacro:include filename="$(find e2f_description)/urdf/e2f_macro.xacro" />
+  <xacro:e2f
+    name="e2f"
+    tf_prefix="$(arg gripper_prefix)"
+    use_fake_hardware="$(arg use_fake_hardware)"
+    device_name="/tmp/ttyUR"
+    baud_rate="$(arg tool_baud_rate)"
+  />
+  <joint name="$(arg gripper_prefix)base_joint" type="fixed">
     <parent link="tool0" />
-    <child link="$(arg gripper_prefix)coupling_link" />
+    <child link="$(arg gripper_prefix)base_link" />
     <origin xyz="0 0 0" rpy="0 0 ${pi}" />
   </joint>
 
@@ -74,7 +81,7 @@
     <joint name="${name}_joint" type="fixed">
       <parent link="${parent}" />
       <child link="${name}" />
-      <origin xyz="-4.25e-3 0 29.51e-3" rpy="0 -${pi/2} 0" />
+      <origin xyz="-1e-3 0 -9e-3" rpy="-${pi/2} 0 -${pi/2}" />
     </joint>
     <!-- Create dummy link for gazebo_ros_camera because it publishes image in wrong orientation -->
     <xacro:if value="$(arg sim_gazebo)">
@@ -86,15 +93,15 @@
       </joint>
     </xacro:if>
   </xacro:macro>
-  <xacro:proximity_frame name="left_proximity" parent="$(arg gripper_prefix)left_fingertip_link" />
-  <xacro:proximity_frame name="right_proximity" parent="$(arg gripper_prefix)right_fingertip_link" />
+  <xacro:proximity_frame name="left_proximity" parent="$(arg gripper_prefix)fingertip_l" />
+  <xacro:proximity_frame name="right_proximity" parent="$(arg gripper_prefix)fingertip_r" />
 
   <!-- Frame for TCP -->
   <link name="tcp" />
   <joint name="tcp_joint" type="fixed">
     <parent link="tool0" />
     <child link="tcp" />
-    <origin xyz="0 0 0.155" rpy="0 0 0" />
+    <origin xyz="0 0 0.132" rpy="0 0 0" />
   </joint>
 
   <!-- Gazebo -->
