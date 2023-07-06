@@ -18,6 +18,7 @@ from launch.actions import (
     EmitEvent,
     ExecuteProcess,
     RegisterEventHandler,
+    TimerAction,
 )
 from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnShutdown, OnProcessExit
@@ -100,6 +101,18 @@ def generate_launch_description():
         parameters=[{"robot_ip": LaunchConfiguration("robot_ip")}],
     )
 
+    tool_communication_node = Node(
+        package="ur_robot_driver",
+        executable="tool_communication.py",
+        name="ur_tool_comm",
+        parameters=[
+            {
+                "robot_ip": LaunchConfiguration("robot_ip"),
+            }
+        ],
+        condition=UnlessCondition(LaunchConfiguration("use_fake_hardware")),
+    )
+
     controller_stopper_node = Node(
         package="ur_robot_driver",
         executable="controller_stopper_node",
@@ -110,14 +123,7 @@ def generate_launch_description():
         parameters=[
             {"headless_mode": False},
             {"joint_controller_active": False},
-            {
-                "consistent_controllers": [
-                    "io_and_status_controller",
-                    "force_torque_sensor_broadcaster",
-                    "joint_state_broadcaster",
-                    "speed_scaling_state_broadcaster",
-                ]
-            },
+            {"consistent_controllers": ["joint_state_broadcaster"]},
         ],
     )
 
@@ -126,6 +132,7 @@ def generate_launch_description():
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
+        arguments=["--ros-args", "--log-level", "warn"],
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -134,28 +141,17 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster", "-c", "/controller_manager"],
     )
 
-    io_and_status_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["io_and_status_controller", "-c", "/controller_manager"],
-    )
-
-    speed_scaling_state_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["speed_scaling_state_broadcaster", "-c", "/controller_manager"],
-    )
-
-    force_torque_sensor_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["force_torque_sensor_broadcaster", "-c", "/controller_manager"],
-    )
-
     twist_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["twist_controller", "-c", "/controller_manager", "--inactive"],
+    )
+
+    gripper_command_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["gripper_command_controller", "-c", "/controller_manager"],
+        condition=UnlessCondition(LaunchConfiguration("use_fake_hardware")),
     )
 
     # Rviz
@@ -166,7 +162,7 @@ def generate_launch_description():
         package="rviz2",
         executable="rviz2",
         namespace="",
-        arguments=["-d", rviz_config_file],
+        arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "warn"],
         emulate_tty=True,
     )
 
@@ -181,16 +177,21 @@ def generate_launch_description():
     )
 
     actions = [
-        control_node,
-        ur_control_node,
+        tool_communication_node,
         dashboard_client_node,
-        controller_stopper_node,
-        robot_state_publisher_node,
-        joint_state_broadcaster_spawner,
-        io_and_status_controller_spawner,
-        speed_scaling_state_broadcaster_spawner,
-        force_torque_sensor_broadcaster_spawner,
-        twist_controller_spawner,
+        # Wait for tool communication to be established
+        TimerAction(
+            period=1.0,
+            actions=[
+                control_node,
+                ur_control_node,
+                controller_stopper_node,
+                robot_state_publisher_node,
+                joint_state_broadcaster_spawner,
+                twist_controller_spawner,
+                gripper_command_controller_spawner,
+            ],
+        ),
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=joint_state_broadcaster_spawner,
