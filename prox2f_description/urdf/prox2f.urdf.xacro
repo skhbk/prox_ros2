@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="$(arg name)">
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="prox2f">
   <!-- General parameters -->
-  <xacro:arg name="name" default="" />
   <xacro:arg name="use_fake_hardware" default="true" />
   <xacro:arg name="sim_gazebo" default="false" />
   <xacro:arg name="simulation_controllers" default="" />
