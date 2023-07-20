@@ -35,21 +35,7 @@ def generate_launch_description():
             "name:=prox2f",
         ]
     )
-    ghost_gripper_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name="xacro")]),
-            " ",
-            PathJoinSubstitution(
-                [FindPackageShare("prox2f_description"), "urdf", "gripper.urdf.xacro"]
-            ),
-            " ",
-            "name:=grp_ghost",
-            " ",
-            "prefix:=grp_ghost_",
-        ]
-    )
     robot_description = {"robot_description": robot_description_content}
-    ghost_gripper_description = {"robot_description": ghost_gripper_description_content}
 
     # robot_state_publisher nodes
     ur_state_publisher_node = Node(
@@ -57,22 +43,10 @@ def generate_launch_description():
         executable="robot_state_publisher",
         parameters=[robot_description],
     )
-    gripper_state_publisher_node = Node(
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
-        namespace="ghost",
-        parameters=[ghost_gripper_description],
-    )
 
-    # joint_state_publisher nodes
-    ur_joint_state_publisher_node = Node(
+    joint_state_publisher_node = Node(
         package="joint_state_publisher_gui",
         executable="joint_state_publisher_gui",
-    )
-    gripper_joint_state_publisher_node = Node(
-        package="joint_state_publisher_gui",
-        executable="joint_state_publisher_gui",
-        namespace="ghost",
     )
 
     rviz_node = Node(
@@ -89,9 +63,7 @@ def generate_launch_description():
 
     nodes = [
         ur_state_publisher_node,
-        gripper_state_publisher_node,
-        ur_joint_state_publisher_node,
-        gripper_joint_state_publisher_node,
+        joint_state_publisher_node,
         rviz_node,
     ]
 
