@@ -26,7 +26,8 @@ namespace prox::mesh
 class Triangulation : public rclcpp::Node
 {
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subscription_;
-  rclcpp::Publisher<prox_msgs::msg::MeshStamped>::SharedPtr publisher_;
+  rclcpp::Publisher<prox_msgs::msg::MeshStamped>::SharedPtr mesh_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr normals_publisher_;
 
 public:
   explicit Triangulation(const rclcpp::NodeOptions & options);

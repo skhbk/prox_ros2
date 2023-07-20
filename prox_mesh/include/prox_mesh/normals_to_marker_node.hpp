@@ -12,34 +12,29 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef PROX_MESH__RAYCASTER_HPP_
-#define PROX_MESH__RAYCASTER_HPP_
+#pragma once
 
-#include <optional>
-#include <vector>
+#include "rclcpp/rclcpp.hpp"
 
-#include "shape_msgs/msg/mesh.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
+#include "visualization_msgs/msg/marker.hpp"
 
 namespace prox::mesh
 {
 
-using Vertex = std::array<float, 3>;
-using Polygon = std::array<uint32_t, 3>;
-struct Ray
+class NormalsToMarker : public rclcpp::Node
 {
-  Vertex origin, direction;
-};
-using Hit = std::optional<Vertex>;
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subscription_;
+  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr publisher_;
 
-class Raycaster
-{
 public:
-  Raycaster() = default;
-  virtual ~Raycaster() = default;
-  virtual void load_mesh(const shape_msgs::msg::Mesh & mesh_msg) = 0;
-  virtual std::vector<Hit> raycast(const std::vector<Ray> & rays) = 0;
+  explicit NormalsToMarker(const rclcpp::NodeOptions & options);
+
+private:
+  void topic_callback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr & mesh_msg);
 };
 
 }  // namespace prox::mesh
 
-#endif  // PROX_MESH__RAYCASTER_HPP_
+#include "rclcpp_components/register_node_macro.hpp"
+RCLCPP_COMPONENTS_REGISTER_NODE(prox::mesh::NormalsToMarker)

@@ -22,7 +22,6 @@ ament_auto_add_library(
 target_link_libraries(
   ${PROJECT_NAME} virtual_wrench_params wrench_to_twist_params
 )
-target_link_libraries(${PROJECT_NAME} virtual_wrench_params)
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
