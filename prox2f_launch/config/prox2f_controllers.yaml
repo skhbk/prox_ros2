@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 500
+    update_rate: 100
 
     twist_controller:
       type: prox2f_control/TwistController
@@ -22,7 +22,6 @@ controller_manager:
 
 twist_controller:
   ros__parameters:
-    update_rate: 10 # not Hz, but divisor
     joints:
       - shoulder_pan_joint
       - shoulder_lift_joint
