@@ -150,13 +150,27 @@ def generate_launch_description():
         parameters=[{"mass": 0.5, "inertia": 0.001}],
         extra_arguments=[{"use_intra_process_comms": True}],
     )
+    grasp_pose_publisher_node = ComposableNode(
+        package="prox2f_pregrasp",
+        plugin="prox::pregrasp::GraspPosePublisher",
+        remappings=[
+            ("input1/normals", [output_namespaces[0], "/triangulation/normals"]),
+            ("input2/normals", [output_namespaces[1], "/triangulation/normals"]),
+        ],
+        parameters=[{"output_frame_id": "tcp", "tcp_frame_id": "tcp"}],
+        extra_arguments=[{"use_intra_process_comms": True}],
+    )
     containers.append(
         ComposableNodeContainer(
             name="attraction_container",
             namespace="",
             package="rclcpp_components",
             executable="component_container",
-            composable_node_descriptions=[virtual_wrench_node, wrench_to_twist_node],
+            composable_node_descriptions=[
+                virtual_wrench_node,
+                wrench_to_twist_node,
+                grasp_pose_publisher_node,
+            ],
             emulate_tty=True,
             arguments=["--ros-args", "--log-level", "warn"],
         )

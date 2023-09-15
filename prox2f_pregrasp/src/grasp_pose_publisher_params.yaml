@@ -1,0 +1,11 @@
+prox::pregrasp::grasp_pose_publisher:
+  output_frame_id: { type: string }
+
+  tcp_frame_id: { type: string }
+
+  alignment_vector:
+    {
+      type: double_array,
+      default_value: [0.0, 0.0, 1.0],
+      validation: { fixed_size<>: 3 },
+    }
