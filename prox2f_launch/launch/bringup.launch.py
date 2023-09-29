@@ -49,8 +49,6 @@ def generate_launch_description():
                 [FindPackageShare("prox2f_description"), "urdf", "prox2f.urdf.xacro"]
             ),
             " ",
-            "name:=prox2f",
-            " ",
             "robot_ip:=",
             LaunchConfiguration("robot_ip"),
             " ",

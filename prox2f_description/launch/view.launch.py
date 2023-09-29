@@ -31,8 +31,6 @@ def generate_launch_description():
             PathJoinSubstitution(
                 [FindPackageShare("prox2f_description"), "urdf", "prox2f.urdf.xacro"]
             ),
-            " ",
-            "name:=prox2f",
         ]
     )
     robot_description = {"robot_description": robot_description_content}
