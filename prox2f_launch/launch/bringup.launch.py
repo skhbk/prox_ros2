@@ -40,6 +40,11 @@ def generate_launch_description():
     args.append(
         DeclareLaunchArgument("kinematics_file", default_value="ur5e_kinematics.yaml")
     )
+    args.append(
+        DeclareLaunchArgument(
+            "initial_positions_file", default_value="ur_initial_positions.yaml"
+        )
+    )
 
     robot_description_mappings = {
         "robot_ip": LaunchConfiguration("robot_ip"),
@@ -51,6 +56,14 @@ def generate_launch_description():
                 LaunchConfiguration("kinematics_file"),
             ]
         ),
+        "initial_positions_file": PathJoinSubstitution(
+            [
+                FindPackageShare("prox2f_description"),
+                "config",
+                LaunchConfiguration("initial_positions_file"),
+            ]
+        ),
+    }
 
     moveit_config = (
         MoveItConfigsBuilder("prox2f")
