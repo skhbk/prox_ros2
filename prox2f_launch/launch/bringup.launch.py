@@ -25,12 +25,12 @@ from launch.event_handlers import OnShutdown, OnProcessExit
 from launch.events import Shutdown
 from launch.substitutions import (
     LaunchConfiguration,
-    Command,
     FindExecutable,
     PathJoinSubstitution,
 )
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node
+from moveit_configs_utils import MoveItConfigsBuilder
 
 
 def generate_launch_description():
@@ -41,40 +41,31 @@ def generate_launch_description():
         DeclareLaunchArgument("kinematics_file", default_value="ur5e_kinematics.yaml")
     )
 
-    robot_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name="xacro")]),
-            " ",
-            PathJoinSubstitution(
-                [FindPackageShare("prox2f_description"), "urdf", "prox2f.urdf.xacro"]
-            ),
-            " ",
-            "robot_ip:=",
-            LaunchConfiguration("robot_ip"),
-            " ",
-            "use_fake_hardware:=",
-            LaunchConfiguration("use_fake_hardware"),
-            " ",
-            "kinematics_params:=",
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("prox2f_description"),
-                    "config",
-                    LaunchConfiguration("kinematics_file"),
-                ]
-            ),
-        ]
-    )
-    robot_description = {"robot_description": robot_description_content}
+    robot_description_mappings = {
+        "robot_ip": LaunchConfiguration("robot_ip"),
+        "use_fake_hardware": LaunchConfiguration("use_fake_hardware"),
+        "kinematics_params": PathJoinSubstitution(
+            [
+                FindPackageShare("prox2f_description"),
+                "config",
+                LaunchConfiguration("kinematics_file"),
+            ]
+        ),
 
-    initial_controllers = PathJoinSubstitution(
+    moveit_config = (
+        MoveItConfigsBuilder("prox2f")
+        .robot_description(mappings=robot_description_mappings)
+        .to_moveit_configs()
+    )
+
+    ros2_controllers = PathJoinSubstitution(
         [FindPackageShare("prox2f_launch"), "config", "prox2f_controllers.yaml"]
     )
 
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_description, initial_controllers],
+        parameters=[moveit_config.robot_description, ros2_controllers],
         output="screen",
         emulate_tty=True,
         condition=IfCondition(LaunchConfiguration("use_fake_hardware")),
@@ -83,7 +74,7 @@ def generate_launch_description():
     ur_control_node = Node(
         package="ur_robot_driver",
         executable="ur_ros2_control_node",
-        parameters=[robot_description, initial_controllers],
+        parameters=[moveit_config.robot_description, ros2_controllers],
         output="screen",
         emulate_tty=True,
         condition=UnlessCondition(LaunchConfiguration("use_fake_hardware")),
@@ -129,7 +120,7 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
-        parameters=[robot_description],
+        parameters=[moveit_config.robot_description],
         arguments=["--ros-args", "--log-level", "warn"],
     )
 
