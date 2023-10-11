@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:macro name="workspace" params="name frame size_x size_y size_z center_x center_y center_z">
+    <xacro:property name="thickness" default="0.01" />
+
+    <material name="${name}_material">
+      <color rgba="0 1 0 0.1" />
+    </material>
+
+    <xacro:macro name="box_collision_and_visual" params="size *origin">
+      <visual>
+        <geometry>
+          <box size="${size}" />
+        </geometry>
+        <material name="${name}_material" />
+        <xacro:insert_block name="origin" />
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${size}" />
+        </geometry>
+        <xacro:insert_block name="origin" />
+      </collision>
+    </xacro:macro>
+
+    <link name="${name}">
+      <!-- Top -->
+      <xacro:box_collision_and_visual size="${size_x} ${size_y} ${thickness}">
+        <origin xyz="${center_x} ${center_y} ${center_z + size_z/2 + thickness/2}" rpy="0 0 0" />
+      </xacro:box_collision_and_visual>
+      <!-- Bottom -->
+      <xacro:box_collision_and_visual size="${size_x} ${size_y} ${thickness}">
+        <origin xyz="${center_x} ${center_y} ${center_z - size_z/2 - thickness/2}" rpy="0 0 0" />
+      </xacro:box_collision_and_visual>
+      <!-- Front -->
+      <xacro:box_collision_and_visual size="${thickness} ${size_y} ${size_z}">
+        <origin xyz="${center_x + size_x/2 + thickness/2} ${center_y} ${center_z}" rpy="0 0 0" />
+      </xacro:box_collision_and_visual>
+      <!-- Back -->
+      <xacro:box_collision_and_visual size="${thickness} ${size_y} ${size_z}">
+        <origin xyz="${center_x - size_x/2 - thickness/2} ${center_y} ${center_z}" rpy="0 0 0" />
+      </xacro:box_collision_and_visual>
+      <!-- Right -->
+      <xacro:box_collision_and_visual size="${size_x} ${thickness} ${size_z}">
+        <origin xyz="${center_x} ${center_y + size_y/2 + thickness/2} ${center_z}" rpy="0 0 0" />
+      </xacro:box_collision_and_visual>
+      <!-- Left -->
+      <xacro:box_collision_and_visual size="${size_x} ${thickness} ${size_z}">
+        <origin xyz="${center_x} ${center_y - size_y/2 - thickness/2} ${center_z}" rpy="0 0 0" />
+      </xacro:box_collision_and_visual>
+    </link>
+
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${frame}" />
+      <child link="${name}" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+    </joint>
+  </xacro:macro>
+</robot>

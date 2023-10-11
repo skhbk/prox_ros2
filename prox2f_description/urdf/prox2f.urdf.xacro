@@ -56,7 +56,7 @@
     output_recipe_filename="$(arg output_recipe_filename)"
     input_recipe_filename="$(arg input_recipe_filename)"
   >
-    <origin xyz="0 0 0" rpy="0 0 0" />
+    <origin xyz="0 0 0" rpy="0 0 ${-pi/2}" />
   </xacro:ur_robot>
 
   <!-- Gripper -->
@@ -102,6 +102,13 @@
     <child link="tcp" />
     <origin xyz="0 0 0.132" rpy="0 0 0" />
   </joint>
+
+  <!-- Workspace -->
+  <xacro:include filename="$(find prox2f_description)/urdf/workspace_macro.xacro" />
+  <xacro:workspace name="workspace" frame="world"
+    size_x="1.1" size_y="0.9" size_z="1.0"
+    center_x="0.15" center_y="0.0" center_z="0.5"
+  />
 
   <!-- Gazebo -->
   <xacro:if value="$(arg sim_gazebo)">
