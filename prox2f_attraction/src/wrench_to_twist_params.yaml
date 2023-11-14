@@ -1,3 +1,0 @@
-prox::attraction::wrench_to_twist:
-  mass: { type: double }
-  inertia: { type: double }
