@@ -11,12 +11,21 @@ ament_auto_find_build_dependencies()
 generate_parameter_library(
   grasp_pose_publisher_params src/grasp_pose_publisher_params.yaml
 )
+generate_parameter_library(servo_params src/servo_params.yaml)
 
-ament_auto_add_library(${PROJECT_NAME} SHARED src/grasp_pose_publisher_node.cpp)
-target_link_libraries(${PROJECT_NAME} grasp_pose_publisher_params)
+ament_auto_add_library(
+  ${PROJECT_NAME}
+  SHARED
+  src/grasp_pose_publisher_node.cpp
+  src/servo_node.cpp
+)
+target_link_libraries(${PROJECT_NAME} grasp_pose_publisher_params servo_params)
 
 rclcpp_components_register_nodes(
-  ${PROJECT_NAME} PLUGIN "prox::pregrasp::GraspPosePublisher"
+  ${PROJECT_NAME}
+  PLUGIN
+  "prox::pregrasp::GraspPosePublisher"
+  "prox::pregrasp::Servo"
 )
 
 if(BUILD_TESTING)
