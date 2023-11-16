@@ -64,6 +64,7 @@ void Triangulation::topic_callback(const PointCloud2::ConstSharedPtr & cloud_msg
     point_normal.y = point.y;
     point_normal.z = point.z;
   }
+  normals.is_dense = false;
 
   // Convert to mesh message
   MeshStamped mesh_msg;
