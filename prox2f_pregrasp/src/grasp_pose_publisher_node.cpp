@@ -162,7 +162,7 @@ void GraspPosePublisher::topic_callback(
   // Publish message
   PoseStamped pose_msg;
   pose_msg.header.frame_id = params_.output_frame_id;
-  pose_msg.header.stamp = normals_msg1->header.stamp;
+  pose_msg.header.stamp = this->now();
   pose_msg.pose = pose;
   publisher_->publish(pose_msg);
 }
