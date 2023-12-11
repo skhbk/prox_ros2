@@ -69,6 +69,7 @@ def generate_launch_description():
     moveit_config = (
         MoveItConfigsBuilder("prox2f")
         .robot_description(mappings=robot_description_mappings)
+        .trajectory_execution(moveit_manage_controllers=False)
         .to_moveit_configs()
     )
 
