@@ -72,6 +72,14 @@ def generate_launch_description():
         .to_moveit_configs()
     )
 
+    move_group_node = Node(
+        package="moveit_ros_move_group",
+        executable="move_group",
+        parameters=[moveit_config.to_dict()],
+        output="screen",
+        emulate_tty=True,
+    )
+
     ros2_controllers = PathJoinSubstitution(
         [FindPackageShare("prox2f_launch"), "config", "prox2f_controllers.yaml"]
     )
@@ -198,6 +206,13 @@ def generate_launch_description():
         package="rviz2",
         executable="rviz2",
         namespace="",
+        parameters=[
+            moveit_config.robot_description,
+            moveit_config.robot_description_semantic,
+            moveit_config.robot_description_kinematics,
+            moveit_config.planning_pipelines,
+            moveit_config.joint_limits,
+        ],
         arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "warn"],
         emulate_tty=True,
     )
@@ -222,6 +237,7 @@ def generate_launch_description():
                 control_node,
                 ur_control_node,
                 controller_stopper_node,
+                move_group_node,
                 robot_state_publisher_node,
                 joint_state_broadcaster_spawner,
                 arm_controller_spawner,
