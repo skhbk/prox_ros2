@@ -1,0 +1,11 @@
+prox::camera::camera_transform_publisher:
+  marker_frame_id: { type: string }
+
+  camera_frame_id: { type: string, default_value: camera_link }
+
+  marker_id: { type: int, default_value: 0 }
+
+  marker_length: {
+      type: double,
+      default_value: 0.05, # m
+    }
