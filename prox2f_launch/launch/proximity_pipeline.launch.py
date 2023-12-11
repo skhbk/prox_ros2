@@ -52,7 +52,7 @@ def generate_launch_description():
                 plugin="prox::preprocess::ImageSmoothing",
                 namespace=output_namespace,
                 remappings=[("input/image", [input_namespace, "/image"])],
-                parameters=[{"filter_coefficient": 0.6, "lower_clip": 0.02}],
+                parameters=[{"filter_coefficient": 0.3, "lower_clip": 0.01}],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
@@ -80,7 +80,7 @@ def generate_launch_description():
                     ("input/points", "raw_points"),
                 ],
                 parameters=[
-                    {"pass_through.field_name": "z", "pass_through.bounds": [0.0, 0.08]}
+                    {"pass_through.field_name": "z", "pass_through.bounds": [0.0, 0.3]}
                 ],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
