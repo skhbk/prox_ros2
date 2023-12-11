@@ -1,9 +1,9 @@
 controller_manager:
   ros__parameters:
-    update_rate: 100
+    update_rate: 60
 
-    twist_controller:
-      type: prox2f_control/TwistController
+    prox2f_arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
 
     gripper_command_controller:
       type: e2f_controllers/GripperCommandController
@@ -20,7 +20,7 @@ controller_manager:
     force_torque_sensor_broadcaster:
       type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
 
-twist_controller:
+prox2f_arm_controller:
   ros__parameters:
     joints:
       - shoulder_pan_joint
@@ -29,19 +29,25 @@ twist_controller:
       - wrist_1_joint
       - wrist_2_joint
       - wrist_3_joint
-    kinematics:
-      end_effector_link: tcp
-    enabled_axes:
-      - true
-      - true
-      - true
-      - false
-      - true
-      - true
-    filter_coefficient: 0.1
-    safety:
-      linear_speed_limit: 0.1
-      angular_speed_limit: 0.5
+    command_interfaces:
+      - velocity
+    state_interfaces:
+      - position
+      - velocity
+    allow_nonzero_velocity_at_trajectory_end: true
+    gains:
+      shoulder_pan_joint:
+        ff_velocity_scale: 1.0
+      shoulder_lift_joint:
+        ff_velocity_scale: 1.0
+      elbow_joint:
+        ff_velocity_scale: 1.0
+      wrist_1_joint:
+        ff_velocity_scale: 1.0
+      wrist_2_joint:
+        ff_velocity_scale: 1.0
+      wrist_3_joint:
+        ff_velocity_scale: 1.0
 
 gripper_command_controller:
   ros__parameters:

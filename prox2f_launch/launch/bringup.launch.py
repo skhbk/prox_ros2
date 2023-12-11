@@ -143,10 +143,15 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster", "-c", "/controller_manager"],
     )
 
-    twist_controller_spawner = Node(
+    arm_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["twist_controller", "-c", "/controller_manager", "--inactive"],
+        arguments=[
+            "prox2f_arm_controller",
+            "-c",
+            "/controller_manager",
+            "--inactive",
+        ],
     )
 
     gripper_command_controller_spawner = Node(
@@ -190,7 +195,7 @@ def generate_launch_description():
                 controller_stopper_node,
                 robot_state_publisher_node,
                 joint_state_broadcaster_spawner,
-                twist_controller_spawner,
+                arm_controller_spawner,
                 gripper_command_controller_spawner,
             ],
         ),
