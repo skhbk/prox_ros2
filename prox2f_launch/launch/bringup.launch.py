@@ -28,8 +28,9 @@ from launch.substitutions import (
     FindExecutable,
     PathJoinSubstitution,
 )
+from launch_ros.actions import ComposableNodeContainer, Node
+from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.actions import Node
 from moveit_configs_utils import MoveItConfigsBuilder
 
 
@@ -161,6 +162,34 @@ def generate_launch_description():
         condition=UnlessCondition(LaunchConfiguration("use_fake_hardware")),
     )
 
+    srervo_container = ComposableNodeContainer(
+        name="servo_container",
+        namespace="",
+        package="rclcpp_components",
+        executable="component_container",
+        composable_node_descriptions=[
+            ComposableNode(
+                package="prox2f_pregrasp",
+                plugin="prox::pregrasp::Servo",
+                remappings=[
+                    ("input/pose", "grasp_pose_publisher/pose"),
+                    (
+                        "~/joint_trajectory",
+                        "/prox2f_arm_controller/joint_trajectory",
+                    ),
+                ],
+                parameters=[
+                    {"move_group_name": "prox2f_arm"},
+                    moveit_config.robot_description,
+                    moveit_config.robot_description_semantic,
+                    moveit_config.robot_description_kinematics,
+                    moveit_config.joint_limits,
+                ],
+            )
+        ],
+        emulate_tty=True,
+    )
+
     # Rviz
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare("prox2f_launch"), "rviz", "view.rviz"]
@@ -197,6 +226,7 @@ def generate_launch_description():
                 joint_state_broadcaster_spawner,
                 arm_controller_spawner,
                 gripper_command_controller_spawner,
+                srervo_container,
             ],
         ),
         RegisterEventHandler(
