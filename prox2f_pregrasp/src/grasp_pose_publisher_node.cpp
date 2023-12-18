@@ -138,6 +138,13 @@ void GraspPosePublisher::topic_callback(
     std::isfinite(orientation.x()) && std::isfinite(orientation.y()) &&
     std::isfinite(orientation.z()));
 
+  // Suppress orientation based on position norm
+  {
+    const double orientation_gain = std::pow(M_E, -100.0 * position.length());
+    assert(orientation_gain >= 0 && orientation_gain <= 1);
+    orientation *= orientation_gain;
+  }
+
   tf2::Quaternion quaternion;
   quaternion.setRPY(orientation.x(), orientation.y(), orientation.z());
 
