@@ -13,8 +13,10 @@
 #  limitations under the License.
 
 from launch import LaunchDescription
-from launch_ros.actions import ComposableNodeContainer
+from launch.substitutions import PathJoinSubstitution
+from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
@@ -61,6 +63,25 @@ def generate_launch_description():
         emulate_tty=True,
     )
 
-    actions = [camera_container]
+    object_detection_node = Node(
+        package="prox2f_detection",
+        executable="object_detection_node",
+        remappings=[
+            ("/depth/image_raw", "/aligned_depth_to_color/image_raw"),
+            ("/depth/camera_info", "/aligned_depth_to_color/camera_info"),
+        ],
+        parameters=[
+            {
+                "model_path": PathJoinSubstitution(
+                    [FindPackageShare("prox2f_detection"), "models", "ycb4.pt"]
+                ),
+                "confidence_threshold": 0.4,
+                "iou_threshold": 0.6,
+            }
+        ],
+        emulate_tty=True,
+    )
+
+    actions = [camera_container, object_detection_node]
 
     return LaunchDescription(args + actions)
