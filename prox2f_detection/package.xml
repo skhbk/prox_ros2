@@ -7,6 +7,18 @@
   <maintainer email="sakai_hibiki@stu.kanazawa-u.ac.jp">Sakai Hibiki</maintainer>
   <license>Apache License 2.0</license>
 
+  <depend>cv_bridge</depend>
+  <depend>generate_parameter_library</depend>
+  <depend>message_filters</depend>
+  <depend>python-numpy-quaternion-pip</depend>
+  <depend>python3-open3d-pip</depend>
+  <depend>python3-ultralytics-pip</depend>
+  <depend>rclpy</depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>visualization_msgs</depend>
+
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
