@@ -110,12 +110,11 @@
     center_x="0.15" center_y="0.0" center_z="${0.5 + 0.04}"
   />
 
-  <link name="aruco0" />
-  <joint name="aruco0_joint" type="fixed">
-    <parent link="world" />
-    <child link="aruco0" />
-    <origin xyz="0.4 0 0" rpy="0 0 ${pi/2}" />
-  </joint>
+  <!-- RealSense -->
+  <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+  <xacro:sensor_d435 parent="tool0">
+    <origin xyz="0 -0.0425 0.01815" rpy="${pi/2} -${pi/2} 0" />
+  </xacro:sensor_d435>
 
   <!-- Gazebo -->
   <xacro:if value="$(arg sim_gazebo)">

@@ -40,17 +40,6 @@ def generate_launch_description():
         extra_arguments=[{"use_intra_process_comms": True}],
     )
 
-    camera_transform_publisher_node = ComposableNode(
-        package="prox2f_camera",
-        plugin="prox::camera::CameraTransformPublisher",
-        remappings=[
-            ("~/image_raw", "/color/image_raw"),
-            ("~/camera_info", "/color/camera_info"),
-        ],
-        parameters=[{"marker_frame_id": "aruco0"}],
-        extra_arguments=[{"use_intra_process_comms": True}],
-    )
-
     camera_container = ComposableNodeContainer(
         name="camera_container",
         namespace="",
@@ -58,7 +47,6 @@ def generate_launch_description():
         executable="component_container",
         composable_node_descriptions=[
             camera_node,
-            camera_transform_publisher_node,
         ],
         emulate_tty=True,
     )
