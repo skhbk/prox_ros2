@@ -35,6 +35,7 @@ def generate_launch_description():
                 "align_depth.enable": True,
                 "enable_infra1": False,
                 "enable_infra2": False,
+                "clip_distance": 1.0,
             }
         ],
         extra_arguments=[{"use_intra_process_comms": True}],
