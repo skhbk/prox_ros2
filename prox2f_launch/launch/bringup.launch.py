@@ -164,10 +164,10 @@ def generate_launch_description():
         ],
     )
 
-    gripper_command_controller_spawner = Node(
+    gripper_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["gripper_command_controller", "-c", "/controller_manager"],
+        arguments=["prox2f_gripper_controller", "-c", "/controller_manager"],
         condition=UnlessCondition(LaunchConfiguration("use_fake_hardware")),
     )
 
@@ -242,7 +242,7 @@ def generate_launch_description():
                 robot_state_publisher_node,
                 joint_state_broadcaster_spawner,
                 arm_controller_spawner,
-                gripper_command_controller_spawner,
+                gripper_controller_spawner,
                 srervo_container,
             ],
         ),

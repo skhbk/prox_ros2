@@ -5,8 +5,8 @@ controller_manager:
     prox2f_arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-    gripper_command_controller:
-      type: e2f_controllers/GripperCommandController
+    prox2f_gripper_controller:
+      type: effort_controllers/GripperActionController
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -49,9 +49,19 @@ prox2f_arm_controller:
       wrist_3_joint:
         ff_velocity_scale: 1.0
 
-gripper_command_controller:
+prox2f_gripper_controller:
   ros__parameters:
     joint: grp_stroke
+    goal_tolerance: 0.005
+    allow_stalling: true
+    stall_velocity_threshold: 0.002
+    stall_timeout: 1.0
+    gains:
+      grp_stroke:
+        p: -30.0
+        i: -0.2
+        d: -0.2
+        i_clamp: 2.0
 
 force_torque_sensor_broadcaster:
   ros__parameters:
