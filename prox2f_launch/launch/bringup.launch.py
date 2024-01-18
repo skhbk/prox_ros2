@@ -12,6 +12,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import os
+import sys
+
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
@@ -31,52 +34,22 @@ from launch.substitutions import (
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
-from moveit_configs_utils import MoveItConfigsBuilder
+
+sys.path.append(os.path.dirname(__file__))
+from prox2f_common import get_moveit_configs
 
 
 def generate_launch_description():
     args = []
     args.append(DeclareLaunchArgument("robot_ip", default_value="192.168.11.180"))
     args.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
-    args.append(
-        DeclareLaunchArgument("kinematics_file", default_value="ur5e_kinematics.yaml")
-    )
-    args.append(
-        DeclareLaunchArgument(
-            "initial_positions_file", default_value="ur_initial_positions.yaml"
-        )
-    )
 
-    robot_description_mappings = {
-        "robot_ip": LaunchConfiguration("robot_ip"),
-        "use_fake_hardware": LaunchConfiguration("use_fake_hardware"),
-        "kinematics_params": PathJoinSubstitution(
-            [
-                FindPackageShare("prox2f_description"),
-                "config",
-                LaunchConfiguration("kinematics_file"),
-            ]
-        ),
-        "initial_positions_file": PathJoinSubstitution(
-            [
-                FindPackageShare("prox2f_description"),
-                "config",
-                LaunchConfiguration("initial_positions_file"),
-            ]
-        ),
-    }
-
-    moveit_config = (
-        MoveItConfigsBuilder("prox2f")
-        .robot_description(mappings=robot_description_mappings)
-        .trajectory_execution(moveit_manage_controllers=False)
-        .to_moveit_configs()
-    )
+    moveit_configs = get_moveit_configs()
 
     move_group_node = Node(
         package="moveit_ros_move_group",
         executable="move_group",
-        parameters=[moveit_config.to_dict()],
+        parameters=[moveit_configs.to_dict()],
         output="screen",
         emulate_tty=True,
     )
@@ -88,7 +61,7 @@ def generate_launch_description():
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[moveit_config.robot_description, ros2_controllers],
+        parameters=[moveit_configs.robot_description, ros2_controllers],
         output="screen",
         emulate_tty=True,
         condition=IfCondition(LaunchConfiguration("use_fake_hardware")),
@@ -97,7 +70,7 @@ def generate_launch_description():
     ur_control_node = Node(
         package="ur_robot_driver",
         executable="ur_ros2_control_node",
-        parameters=[moveit_config.robot_description, ros2_controllers],
+        parameters=[moveit_configs.robot_description, ros2_controllers],
         output="screen",
         emulate_tty=True,
         condition=UnlessCondition(LaunchConfiguration("use_fake_hardware")),
@@ -143,7 +116,7 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
-        parameters=[moveit_config.robot_description],
+        parameters=[moveit_configs.robot_description],
         arguments=["--ros-args", "--log-level", "warn"],
     )
 
@@ -182,17 +155,14 @@ def generate_launch_description():
                 plugin="prox::pregrasp::Servo",
                 remappings=[
                     ("input/pose", "grasp_pose_publisher/pose"),
-                    (
-                        "~/joint_trajectory",
-                        "/prox2f_arm_controller/joint_trajectory",
-                    ),
+                    ("~/joint_trajectory", "/prox2f_arm_controller/joint_trajectory"),
                 ],
                 parameters=[
                     {"move_group_name": "prox2f_arm"},
-                    moveit_config.robot_description,
-                    moveit_config.robot_description_semantic,
-                    moveit_config.robot_description_kinematics,
-                    moveit_config.joint_limits,
+                    moveit_configs.robot_description,
+                    moveit_configs.robot_description_semantic,
+                    moveit_configs.robot_description_kinematics,
+                    moveit_configs.joint_limits,
                 ],
             )
         ],
@@ -208,11 +178,11 @@ def generate_launch_description():
         executable="rviz2",
         namespace="",
         parameters=[
-            moveit_config.robot_description,
-            moveit_config.robot_description_semantic,
-            moveit_config.robot_description_kinematics,
-            moveit_config.planning_pipelines,
-            moveit_config.joint_limits,
+            moveit_configs.robot_description,
+            moveit_configs.robot_description_semantic,
+            moveit_configs.robot_description_kinematics,
+            moveit_configs.planning_pipelines,
+            moveit_configs.joint_limits,
         ],
         arguments=["-d", rviz_config_file, "--ros-args", "--log-level", "warn"],
         emulate_tty=True,
