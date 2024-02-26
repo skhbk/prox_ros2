@@ -52,6 +52,10 @@ void GraspPosePublisher::topic_callback(
   const PointCloud2::ConstSharedPtr & normals_msg1,
   const PointCloud2::ConstSharedPtr & normals_msg2)
 {
+  if (param_listener_->is_old(params_)) {
+    params_ = param_listener_->get_params();
+  }
+
   if (publisher_->get_subscription_count() == 0) {
     return;
   }
@@ -137,6 +141,25 @@ void GraspPosePublisher::topic_callback(
   assert(
     std::isfinite(orientation.x()) && std::isfinite(orientation.y()) &&
     std::isfinite(orientation.z()));
+
+  if (!params_.enabled_axes.at(0)) {
+    position.setX(0);
+  }
+  if (!params_.enabled_axes.at(1)) {
+    position.setY(0);
+  }
+  if (!params_.enabled_axes.at(2)) {
+    position.setZ(0);
+  }
+  if (!params_.enabled_axes.at(3)) {
+    orientation.setX(0);
+  }
+  if (!params_.enabled_axes.at(4)) {
+    orientation.setY(0);
+  }
+  if (!params_.enabled_axes.at(5)) {
+    orientation.setZ(0);
+  }
 
   // Suppress orientation based on position norm
   {

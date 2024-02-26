@@ -9,3 +9,10 @@ prox::pregrasp::grasp_pose_publisher:
       default_value: [0.0, 0.0, 1.0],
       validation: { fixed_size<>: 3 },
     }
+
+  enabled_axes:
+    {
+      type: bool_array,
+      default_value: [true, true, true, true, true, true],
+      validation: { fixed_size<>: 6 },
+    }
