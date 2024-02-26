@@ -17,3 +17,7 @@ object_detection:
     outlier_removal:
       n_neighbors: { type: int, default_value: 10 }
       std_ratio: { type: double, default_value: 0.1 }
+
+  pose:
+    update_ratio:
+      { type: double, default_value: 0.1, validation: { bounds<>: [0.0, 1.0] } }

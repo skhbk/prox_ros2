@@ -4,7 +4,13 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 
-from geometry_msgs.msg import Point, Pose, PoseArray, Quaternion
+from geometry_msgs.msg import (
+    Point,
+    Pose,
+    PoseWithCovariance,
+    PoseWithCovarianceStamped,
+    Quaternion,
+)
 from sensor_msgs.msg import Image, CameraInfo
 from visualization_msgs.msg import Marker, MarkerArray
 
@@ -28,7 +34,7 @@ class ObjectDetection(Node):
 
         self.model = ultralytics.YOLO(self.params.model_path)
 
-        self.track_ids = []
+        self.tracked_poses: dict[int, PoseWithCovariance] = {}
 
         #  Subscriptions
         self.color_subscription = message_filters.Subscriber(
@@ -57,8 +63,8 @@ class ObjectDetection(Node):
         self.markers_publisher = self.create_publisher(
             MarkerArray, "~/markers", qos_profile_sensor_data
         )
-        self.poses_publisher = self.create_publisher(
-            PoseArray, "~/poses", qos_profile_sensor_data
+        self.pose_publisher = self.create_publisher(
+            PoseWithCovarianceStamped, "~/pose", qos_profile_sensor_data
         )
 
     def topic_callback(
@@ -100,13 +106,9 @@ class ObjectDetection(Node):
         )
         masks = results.masks if results.masks is not None else []
 
-        poses_msg = PoseArray()
-        poses_msg.header = depth_msg.header
-
         markers_msg = MarkerArray()
 
-        track_ids_to_delete = set(self.track_ids) - set(track_ids)
-        self.track_ids = track_ids
+        track_ids_to_delete = set(self.tracked_poses.keys()) - set(track_ids)
 
         for track_id, mask in zip(track_ids, masks):
             # Create mask image
@@ -154,10 +156,48 @@ class ObjectDetection(Node):
             orientation.y = q.y
             orientation.z = q.z
 
-            pose = Pose()
-            pose.position = point
-            pose.orientation = orientation
-            poses_msg.poses.append(pose)
+            current_pose = Pose()
+            current_pose.position = point
+            current_pose.orientation = orientation
+
+            if track_id not in self.tracked_poses:
+                pose = PoseWithCovariance()
+                pose.pose = current_pose
+                pose.covariance = np.identity(6, np.float64).flatten()
+                self.tracked_poses[track_id] = pose
+            else:
+                pose = self.tracked_poses[track_id]
+                covariances = pose.covariance.reshape([6, 6])
+
+                xyz = point_to_xyz(pose.pose.position)
+                rpy = quaternion_to_rpy(pose.pose.orientation)
+                xyz_variances = get_xyz_variances(covariances)
+                rpy_variances = get_rpy_variances(covariances)
+
+                current_xyz = point_to_xyz(current_pose.position)
+                current_rpy = quaternion_to_rpy(current_pose.orientation)
+
+                alpha = self.params.pose.update_ratio
+
+                new_xyz = (1 - alpha) * xyz + alpha * current_xyz
+                new_rpy = (1 - alpha) * rpy + alpha * current_rpy
+
+                new_xyz_variances = (
+                    (1 - alpha) * (xyz_variances + xyz**2)
+                    + alpha * current_xyz**2
+                    - new_xyz**2
+                )
+                new_rpy_variances = (
+                    (1 - alpha) * (rpy_variances + rpy**2)
+                    + alpha * current_rpy**2
+                    - new_rpy**2
+                )
+
+                pose.pose.position = xyz_to_point(new_xyz)
+                pose.pose.orientation = rpy_to_quaternion(new_rpy)
+                pose.covariance = get_covariances(
+                    np.concatenate([new_xyz_variances, new_rpy_variances])
+                ).flatten()
 
             marker = Marker()
             marker.header = depth_msg.header
@@ -165,7 +205,7 @@ class ObjectDetection(Node):
             marker.id = track_id
             marker.type = Marker.CUBE
             marker.action = Marker.ADD
-            marker.pose = pose
+            marker.pose = self.tracked_poses[track_id].pose
             marker.scale.x = bounding_box.extent[0]
             marker.scale.y = bounding_box.extent[1]
             marker.scale.z = bounding_box.extent[2]
@@ -173,8 +213,11 @@ class ObjectDetection(Node):
             marker.color.a = 0.5
             markers_msg.markers.append(marker)
 
-        # Delete markers
         for track_id in track_ids_to_delete:
+            if track_id in self.tracked_poses:
+                del self.tracked_poses[track_id]
+
+            # Delete markers
             marker = Marker()
             marker.header = depth_msg.header
             marker.ns = self.get_namespace()
@@ -182,7 +225,15 @@ class ObjectDetection(Node):
             marker.action = Marker.DELETE
             markers_msg.markers.append(marker)
 
-        self.poses_publisher.publish(poses_msg)
+        if any(self.tracked_poses):
+            poses = list(self.tracked_poses.values())
+            poses.sort(key=lambda x: x.covariance.mean())
+
+            pose_msg = PoseWithCovarianceStamped()
+            pose_msg.header = depth_msg.header
+            pose_msg.pose = poses[0]
+            self.pose_publisher.publish(pose_msg)
+
         self.markers_publisher.publish(markers_msg)
 
         # Plot results image
@@ -191,6 +242,49 @@ class ObjectDetection(Node):
             plot, encoding=color_msg.encoding, header=color_msg.header
         )
         self.image_publisher.publish(image_msg)
+
+
+def point_to_xyz(point: Point):
+    return np.array([point.x, point.y, point.z], np.float64)
+
+
+def xyz_to_point(xyz: np.ndarray):
+    point = Point()
+    point.x = xyz[0]
+    point.y = xyz[1]
+    point.z = xyz[2]
+    return point
+
+
+def quaternion_to_rpy(q_msg: Quaternion):
+    q = np.quaternion(q_msg.w, q_msg.x, q_msg.y, q_msg.z)
+    rpy = quaternion.as_euler_angles(q)
+    return np.array(rpy, np.float64)
+
+
+def rpy_to_quaternion(rpy: np.ndarray):
+    q = quaternion.from_euler_angles(rpy[0], rpy[1], rpy[2])
+    q_msg = Quaternion()
+    q_msg.w = q.w
+    q_msg.x = q.x
+    q_msg.y = q.y
+    q_msg.z = q.z
+    return q_msg
+
+
+def get_xyz_variances(covariance: np.ndarray):
+    return np.array([covariance[0, 0], covariance[1, 1], covariance[2, 2]], np.float64)
+
+
+def get_rpy_variances(covariance: np.ndarray):
+    return np.array([covariance[3, 3], covariance[4, 4], covariance[5, 5]], np.float64)
+
+
+def get_covariances(variances: np.ndarray):
+    covariances = np.zeros([6, 6], np.float64)
+    for i in range(6):
+        covariances[i, i] = variances[i]
+    return covariances
 
 
 def main(args=None):
