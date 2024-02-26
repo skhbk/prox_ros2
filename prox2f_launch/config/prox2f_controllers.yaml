@@ -3,7 +3,7 @@ controller_manager:
     update_rate: 60
 
     prox2f_arm_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type: velocity_controllers/JointGroupVelocityController
 
     prox2f_gripper_controller:
       type: effort_controllers/GripperActionController
@@ -29,25 +29,7 @@ prox2f_arm_controller:
       - wrist_1_joint
       - wrist_2_joint
       - wrist_3_joint
-    command_interfaces:
-      - velocity
-    state_interfaces:
-      - position
-      - velocity
-    allow_nonzero_velocity_at_trajectory_end: true
-    gains:
-      shoulder_pan_joint:
-        ff_velocity_scale: 1.0
-      shoulder_lift_joint:
-        ff_velocity_scale: 1.0
-      elbow_joint:
-        ff_velocity_scale: 1.0
-      wrist_1_joint:
-        ff_velocity_scale: 1.0
-      wrist_2_joint:
-        ff_velocity_scale: 1.0
-      wrist_3_joint:
-        ff_velocity_scale: 1.0
+    interface_name: velocity
 
 prox2f_gripper_controller:
   ros__parameters:

@@ -1,0 +1,3 @@
+global_planner_name: "prox2f_planning/MoveGroupInterface"
+
+allow_trajectory_execution: false
