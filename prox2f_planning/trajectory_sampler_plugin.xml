@@ -1,0 +1,6 @@
+<library path="prox2f_planning">
+  <class name="prox2f_planning/TrajectorySampler" type="prox::planning::TrajectorySampler"
+    base_class_type="moveit::hybrid_planning::TrajectoryOperatorInterface">
+    <description></description>
+  </class>
+</library>

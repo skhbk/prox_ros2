@@ -8,8 +8,25 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+generate_parameter_library(local_planner_params src/local_planner_params.yaml)
+
+ament_auto_add_library(
+  ${PROJECT_NAME}
+  SHARED
+  src/move_group_interface.cpp
+  src/trajectory_sampler.cpp
+  src/servo.cpp
+)
+target_link_libraries(${PROJECT_NAME} local_planner_params)
+
 pluginlib_export_plugin_description_file(
   moveit_hybrid_planning move_group_interface_plugin.xml
+)
+pluginlib_export_plugin_description_file(
+  moveit_hybrid_planning trajectory_sampler_plugin.xml
+)
+pluginlib_export_plugin_description_file(
+  moveit_hybrid_planning servo_plugin.xml
 )
 
 if(BUILD_TESTING)

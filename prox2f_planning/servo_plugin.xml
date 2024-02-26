@@ -1,0 +1,7 @@
+<library path="prox2f_planning">
+  <class name="prox2f_planning/Servo"
+    type="prox::planning::Servo"
+    base_class_type="moveit::hybrid_planning::LocalConstraintSolverInterface">
+    <description></description>
+  </class>
+</library>
