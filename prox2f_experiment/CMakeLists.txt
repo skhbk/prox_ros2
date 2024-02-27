@@ -16,6 +16,7 @@ ament_auto_add_library(${PROJECT_NAME} SHARED src/experiment_base.cpp)
 target_link_libraries(${PROJECT_NAME} experiment_base_params)
 
 ament_auto_add_executable(pickup src/pickup.cpp)
+ament_auto_add_executable(pregrasp_demo src/pregrasp_demo.cpp)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
