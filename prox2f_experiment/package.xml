@@ -9,6 +9,16 @@
 
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
+  <depend>generate_parameter_library</depend>
+  <depend>moveit_common</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_action</depend>
+
+  <depend>control_msgs</depend>
+  <depend>moveit_msgs</depend>
+
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <test_depend>ament_cmake_clang_tidy</test_depend>
