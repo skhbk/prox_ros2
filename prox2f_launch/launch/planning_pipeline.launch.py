@@ -112,9 +112,26 @@ def generate_launch_description():
         output="screen",
     )
 
+    pickup_node = Node(
+        package="prox2f_experiment",
+        executable="pickup",
+        parameters=[
+            {"group_name": "prox2f_arm"},
+            {"gripper_command_action_name": "/prox2f_gripper_controller/gripper_cmd"},
+            common_hybrid_planning_params,
+            moveit_configs.robot_description,
+            moveit_configs.robot_description_semantic,
+            moveit_configs.robot_description_kinematics,
+            moveit_configs.joint_limits,
+        ],
+        output="screen",
+        emulate_tty=True,
+    )
+
     actions = [
         move_group_node,
         hybrid_planning_container,
+        pickup_node,
     ]
 
     return LaunchDescription(args + actions)
