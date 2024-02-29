@@ -52,7 +52,7 @@ def generate_launch_description():
                 plugin="prox::preprocess::ImageSmoothing",
                 namespace=output_namespace,
                 remappings=[("input/image", [input_namespace, "/image"])],
-                parameters=[{"filter_coefficient": 0.6, "lower_clip": 0.02}],
+                parameters=[{"filter_coefficient": 0.3, "lower_clip": 0.01}],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
         )
@@ -80,7 +80,7 @@ def generate_launch_description():
                     ("input/points", "raw_points"),
                 ],
                 parameters=[
-                    {"pass_through.field_name": "z", "pass_through.bounds": [0.0, 0.08]}
+                    {"pass_through.field_name": "z", "pass_through.bounds": [0.0, 0.3]}
                 ],
                 extra_arguments=[{"use_intra_process_comms": True}],
             )
@@ -128,35 +128,25 @@ def generate_launch_description():
             )
         )
 
-    virtual_wrench_node = ComposableNode(
-        package="prox2f_attraction",
-        plugin="prox::attraction::VirtualWrench",
+    grasp_pose_publisher_node = ComposableNode(
+        package="prox2f_pregrasp",
+        plugin="prox::pregrasp::GraspPosePublisher",
         remappings=[
             ("input1/normals", [output_namespaces[0], "/triangulation/normals"]),
             ("input2/normals", [output_namespaces[1], "/triangulation/normals"]),
         ],
-        parameters=[
-            {"wrench_frame_id": "tcp", "normal_scale": 0.05, "stiffness": 1 / 64}
-        ],
-        extra_arguments=[{"use_intra_process_comms": True}],
-    )
-    wrench_to_twist_node = ComposableNode(
-        package="prox2f_attraction",
-        plugin="prox::attraction::WrenchToTwist",
-        remappings=[
-            ("input/wrench_stamped", "virtual_wrench/wrench_stamped"),
-            ("~/twist_stamped", "twist_controller/commands"),
-        ],
-        parameters=[{"mass": 0.5, "inertia": 0.001}],
+        parameters=[{"output_frame_id": "tcp", "tcp_frame_id": "tcp"}],
         extra_arguments=[{"use_intra_process_comms": True}],
     )
     containers.append(
         ComposableNodeContainer(
-            name="attraction_container",
+            name="pregrasp_container",
             namespace="",
             package="rclcpp_components",
             executable="component_container",
-            composable_node_descriptions=[virtual_wrench_node, wrench_to_twist_node],
+            composable_node_descriptions=[
+                grasp_pose_publisher_node,
+            ],
             emulate_tty=True,
             arguments=["--ros-args", "--log-level", "warn"],
         )

@@ -67,8 +67,6 @@ private:
     }
     assert(img_.size == input_img.size);
 
-    cv::medianBlur(input_img, input_img, 3);
-
     img_.forEach([&](float & pixel, const int * position) {
       const auto & input_pixel = input_img.at<float>(position[0], position[1]);
 
@@ -86,12 +84,9 @@ private:
       }
     });
 
-    cv::Mat1f output_img;
-    cv::medianBlur(img_, output_img, 3);
-
     auto output_msg = *input_msg;
     output_msg.data =
-      std::vector<uint8_t>(output_img.data, output_img.data + output_msg.step * output_msg.height);
+      std::vector<uint8_t>(img_.data, img_.data + output_msg.step * output_msg.height);
     publisher_->publish(output_msg);
   }
 };

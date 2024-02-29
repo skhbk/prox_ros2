@@ -1,0 +1,49 @@
+prox::pregrasp::servo:
+  move_group_name: { type: string }
+
+  monitored_planning_scene_topic:
+    { type: string, default_value: "/planning_scene" }
+
+  is_primary_planning_scene_monitor: { type: bool, default_value: false }
+
+  joint_topic: { type: string, default_value: "/joint_states" }
+
+  publish_frequency: {
+      type: double,
+      default_value: 60.0, # Hz
+      validation: { gt_eq: [0.1] },
+    }
+
+  least_goal_time: {
+      type: double,
+      default_value: 0.05, # s
+    }
+
+  incoming_command_timeout: {
+      type: double,
+      default_value: 0.1, # s
+    }
+
+  stopping_time: {
+      type: double,
+      default_value: 0.2, # s
+    }
+
+  filter_coefficient:
+    { type: double, default_value: 0.1, validation: { bounds<>: [0.0, 1.0] } }
+
+  dead_zone:
+    linear: {
+        type: double,
+        default_value: 0.0, # m
+      }
+    angular: {
+        type: double,
+        default_value: 0.1, # rad
+      }
+
+  collision_threshold_distance: {
+      type: double,
+      default_value: 0.01, # m
+      validation: { gt_eq<>: 0.0 },
+    }

@@ -56,7 +56,7 @@
     output_recipe_filename="$(arg output_recipe_filename)"
     input_recipe_filename="$(arg input_recipe_filename)"
   >
-    <origin xyz="0 0 0" rpy="0 0 0" />
+    <origin xyz="0 0 0" rpy="0 0 ${-pi/2}" />
   </xacro:ur_robot>
 
   <!-- Gripper -->
@@ -100,8 +100,21 @@
   <joint name="tcp_joint" type="fixed">
     <parent link="tool0" />
     <child link="tcp" />
-    <origin xyz="0 0 0.132" rpy="0 0 0" />
+    <origin xyz="0 0 0.132" rpy="0 0 ${pi}" />
   </joint>
+
+  <!-- Workspace -->
+  <xacro:include filename="$(find prox2f_description)/urdf/workspace_macro.xacro" />
+  <xacro:workspace name="workspace" frame="world"
+    size_x="1.1" size_y="0.9" size_z="1.0"
+    center_x="0.15" center_y="0.0" center_z="${0.5 + 0.04}"
+  />
+
+  <!-- RealSense -->
+  <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+  <xacro:sensor_d435 parent="tool0">
+    <origin xyz="0 -0.0425 0.01815" rpy="${pi/2} -${pi/2} 0" />
+  </xacro:sensor_d435>
 
   <!-- Gazebo -->
   <xacro:if value="$(arg sim_gazebo)">

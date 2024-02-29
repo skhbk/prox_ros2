@@ -29,6 +29,17 @@
     <passive_joint name="grp_passive_r_joint"/>
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="base_link_inertia" link2="shoulder_link" reason="Adjacent"/>
+    <disable_collisions link1="base_link_inertia" link2="workspace" reason="Adjacent"/>
+    <disable_collisions link1="camera_link" link2="grp_base_link" reason="Adjacent"/>
+    <disable_collisions link1="camera_link" link2="grp_link1_l" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="grp_link1_r" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="grp_link2_l" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="grp_link2_r" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="grp_link3_l" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="grp_link3_r" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="wrist_1_link" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="wrist_2_link" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="wrist_3_link" reason="Adjacent"/>
     <disable_collisions link1="forearm_link" link2="upper_arm_link" reason="Adjacent"/>
     <disable_collisions link1="forearm_link" link2="wrist_1_link" reason="Adjacent"/>
     <disable_collisions link1="forearm_link" link2="wrist_2_link" reason="Never"/>
@@ -46,29 +57,36 @@
     <disable_collisions link1="grp_link1_l" link2="grp_link2_r" reason="User"/>
     <disable_collisions link1="grp_link1_l" link2="grp_link3_l" reason="Adjacent"/>
     <disable_collisions link1="grp_link1_l" link2="grp_link3_r" reason="User"/>
+    <disable_collisions link1="grp_link1_l" link2="wrist_1_link" reason="User"/>
     <disable_collisions link1="grp_link1_l" link2="wrist_2_link" reason="User"/>
     <disable_collisions link1="grp_link1_l" link2="wrist_3_link" reason="User"/>
     <disable_collisions link1="grp_link1_r" link2="grp_link2_l" reason="User"/>
     <disable_collisions link1="grp_link1_r" link2="grp_link2_r" reason="Default"/>
     <disable_collisions link1="grp_link1_r" link2="grp_link3_l" reason="User"/>
     <disable_collisions link1="grp_link1_r" link2="grp_link3_r" reason="Adjacent"/>
+    <disable_collisions link1="grp_link1_r" link2="wrist_1_link" reason="User"/>
     <disable_collisions link1="grp_link1_r" link2="wrist_2_link" reason="User"/>
     <disable_collisions link1="grp_link1_r" link2="wrist_3_link" reason="User"/>
     <disable_collisions link1="grp_link2_l" link2="grp_link2_r" reason="User"/>
     <disable_collisions link1="grp_link2_l" link2="grp_link3_l" reason="Default"/>
     <disable_collisions link1="grp_link2_l" link2="grp_link3_r" reason="User"/>
+    <disable_collisions link1="grp_link2_l" link2="wrist_1_link" reason="User"/>
     <disable_collisions link1="grp_link2_l" link2="wrist_2_link" reason="User"/>
     <disable_collisions link1="grp_link2_l" link2="wrist_3_link" reason="User"/>
     <disable_collisions link1="grp_link2_r" link2="grp_link3_l" reason="User"/>
     <disable_collisions link1="grp_link2_r" link2="grp_link3_r" reason="Default"/>
+    <disable_collisions link1="grp_link2_r" link2="wrist_1_link" reason="User"/>
     <disable_collisions link1="grp_link2_r" link2="wrist_2_link" reason="User"/>
     <disable_collisions link1="grp_link2_r" link2="wrist_3_link" reason="User"/>
     <disable_collisions link1="grp_link3_l" link2="grp_link3_r" reason="User"/>
+    <disable_collisions link1="grp_link3_l" link2="wrist_1_link" reason="User"/>
     <disable_collisions link1="grp_link3_l" link2="wrist_2_link" reason="User"/>
     <disable_collisions link1="grp_link3_l" link2="wrist_3_link" reason="User"/>
+    <disable_collisions link1="grp_link3_r" link2="wrist_1_link" reason="User"/>
     <disable_collisions link1="grp_link3_r" link2="wrist_2_link" reason="User"/>
     <disable_collisions link1="grp_link3_r" link2="wrist_3_link" reason="User"/>
     <disable_collisions link1="shoulder_link" link2="upper_arm_link" reason="Adjacent"/>
+    <disable_collisions link1="shoulder_link" link2="workspace" reason="Never"/>
     <disable_collisions link1="wrist_1_link" link2="wrist_2_link" reason="Adjacent"/>
     <disable_collisions link1="wrist_1_link" link2="wrist_3_link" reason="Never"/>
     <disable_collisions link1="wrist_2_link" link2="wrist_3_link" reason="Adjacent"/>

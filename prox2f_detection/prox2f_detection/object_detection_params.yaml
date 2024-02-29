@@ -1,0 +1,23 @@
+object_detection:
+  model_path: { type: string, default_value: "yolov8n-seg.pt" }
+
+  confidence_threshold: { type: double, default_value: 0.25 }
+
+  iou_threshold: { type: double, default_value: 0.2 }
+
+  device: { type: string, default_value: "cuda:0" }
+
+  point_cloud:
+    erosion:
+      kernel_size: { type: int, default_value: 5 }
+
+    down_sample:
+      voxel_size: { type: double, default_value: 0.01 }
+
+    outlier_removal:
+      n_neighbors: { type: int, default_value: 10 }
+      std_ratio: { type: double, default_value: 0.1 }
+
+  pose:
+    update_ratio:
+      { type: double, default_value: 0.1, validation: { bounds<>: [0.0, 1.0] } }
