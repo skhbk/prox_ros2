@@ -33,17 +33,17 @@ prox::planning::local_planner:
 
   goal_position_tolerance: {
       type: double,
-      default_value: 0.01, # rad (L1 norm)
+      default_value: 0.0, # rad (L1 norm)
     }
 
   stopped_velocity_tolerance: {
       type: double,
-      default_value: 0.01, # rad/s
+      default_value: 0.0, # rad/s
     }
 
   suspend_timeout: {
       type: double,
-      default_value: 0.2, # s
+      default_value: 20, # s
     }
 
   # Not for user
