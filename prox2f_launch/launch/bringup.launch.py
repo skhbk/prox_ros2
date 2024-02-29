@@ -31,8 +31,7 @@ from launch.substitutions import (
     FindExecutable,
     PathJoinSubstitution,
 )
-from launch_ros.actions import ComposableNodeContainer, Node
-from launch_ros.descriptions import ComposableNode
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 sys.path.append(os.path.dirname(__file__))
@@ -45,14 +44,6 @@ def generate_launch_description():
     args.append(DeclareLaunchArgument("use_fake_hardware", default_value="false"))
 
     moveit_configs = get_moveit_configs()
-
-    move_group_node = Node(
-        package="moveit_ros_move_group",
-        executable="move_group",
-        parameters=[moveit_configs.to_dict()],
-        output="screen",
-        emulate_tty=True,
-    )
 
     ros2_controllers = PathJoinSubstitution(
         [FindPackageShare("prox2f_launch"), "config", "prox2f_controllers.yaml"]
@@ -144,31 +135,6 @@ def generate_launch_description():
         condition=UnlessCondition(LaunchConfiguration("use_fake_hardware")),
     )
 
-    srervo_container = ComposableNodeContainer(
-        name="servo_container",
-        namespace="",
-        package="rclcpp_components",
-        executable="component_container",
-        composable_node_descriptions=[
-            ComposableNode(
-                package="prox2f_pregrasp",
-                plugin="prox::pregrasp::Servo",
-                remappings=[
-                    ("input/pose", "grasp_pose_publisher/pose"),
-                    ("~/joint_trajectory", "/prox2f_arm_controller/joint_trajectory"),
-                ],
-                parameters=[
-                    {"move_group_name": "prox2f_arm"},
-                    moveit_configs.robot_description,
-                    moveit_configs.robot_description_semantic,
-                    moveit_configs.robot_description_kinematics,
-                    moveit_configs.joint_limits,
-                ],
-            )
-        ],
-        emulate_tty=True,
-    )
-
     # Rviz
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare("prox2f_launch"), "rviz", "view.rviz"]
@@ -208,12 +174,10 @@ def generate_launch_description():
                 control_node,
                 ur_control_node,
                 controller_stopper_node,
-                move_group_node,
                 robot_state_publisher_node,
                 joint_state_broadcaster_spawner,
                 arm_controller_spawner,
                 gripper_controller_spawner,
-                srervo_container,
             ],
         ),
         RegisterEventHandler(

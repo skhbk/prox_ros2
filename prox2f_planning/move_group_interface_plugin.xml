@@ -1,0 +1,7 @@
+<library path="prox2f_planning">
+  <class name="prox2f_planning/MoveGroupInterface"
+    type="prox::planning::MoveGroupInterface"
+    base_class_type="moveit::hybrid_planning::GlobalPlannerInterface">
+    <description></description>
+  </class>
+</library>

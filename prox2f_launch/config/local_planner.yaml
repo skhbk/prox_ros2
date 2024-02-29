@@ -1,0 +1,16 @@
+robot_description: "robot_description"
+trajectory_operator_plugin_name: "prox2f_planning/TrajectorySampler"
+local_constraint_solver_plugin_name: "prox2f_planning/Servo"
+local_planning_frequency: 60.0
+global_solution_topic: "global_trajectory"
+local_solution_topic: "/prox2f_arm_controller/commands"
+local_solution_topic_type: "std_msgs/Float64MultiArray"
+publish_joint_positions: false
+publish_joint_velocities: true
+group_name: "prox2f_arm"
+# Subscribe to this topic
+monitored_planning_scene: "/monitored_planning_scene"
+collision_object_topic: "/collision_object"
+joint_states_topic: "/joint_states"
+
+servo_frame: "tcp"

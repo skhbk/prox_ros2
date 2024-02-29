@@ -1,0 +1,6 @@
+prox::experiment::experiment_base:
+  group_name: { type: string }
+
+  hybrid_planning_action_name: { type: string, default_value: "hybrid_planner" }
+
+  gripper_command_action_name: { type: string, default_value: "gripper_cmd" }
